@@ -1,0 +1,117 @@
+{
+  "identity": {
+    "name": "CEnT-S Alert",
+    "archetype": "Electric & Neon",
+    "vibe": "Urgent, Precise, Hacker-Tool, Reliable",
+    "mission": "Alert students instantly when a test spot opens."
+  },
+  "typography": {
+    "primary_font": "Inter",
+    "secondary_font": "JetBrains Mono",
+    "usage": {
+      "headings": "JetBrains Mono, font-bold, tracking-tight",
+      "body": "Inter, font-normal, leading-relaxed",
+      "data_display": "JetBrains Mono, font-medium, tracking-wide",
+      "ui_elements": "Inter, font-medium"
+    },
+    "scale": {
+      "h1": "text-4xl md:text-6xl font-bold tracking-tighter",
+      "h2": "text-3xl md:text-4xl font-bold tracking-tight",
+      "h3": "text-xl md:text-2xl font-semibold",
+      "body": "text-base text-gray-400",
+      "caption": "text-sm text-gray-500 uppercase tracking-widest"
+    }
+  },
+  "colors": {
+    "palette": {
+      "background": "#050505",
+      "foreground": "#FFFFFF",
+      "card": "#0A0A0A",
+      "card_foreground": "#FFFFFF",
+      "primary": "#00FF94",
+      "primary_foreground": "#000000",
+      "secondary": "#1A1A1A",
+      "secondary_foreground": "#FFFFFF",
+      "destructive": "#FF3B30",
+      "destructive_foreground": "#FFFFFF",
+      "muted": "#1A1A1A",
+      "muted_foreground": "#A1A1AA",
+      "accent": "#00FF94",
+      "accent_foreground": "#000000",
+      "border": "#27272A"
+    },
+    "usage_rules": {
+      "background": "Use #050505 for the main page background. No gradients.",
+      "cards": "Use #0A0A0A with a 1px border of #27272A.",
+      "status_available": "Use #00FF94 (Neon Green) for 'Available' status and primary CTAs.",
+      "status_full": "Use #FF3B30 (Neon Red) for 'Full' status and error states.",
+      "text": "Headings in White (#FFFFFF), Body in Grey-400 (#9CA3AF)."
+    }
+  },
+  "layout_strategy": {
+    "container": "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8",
+    "spacing": "Generous spacing. Use p-8 or p-12 for cards. gap-6 or gap-8 for grids.",
+    "grid_system": {
+      "dashboard": "Bento Grid: Main Status (col-span-2), History (col-span-1 row-span-2), Settings (col-span-2).",
+      "landing": "Single column centered hero, followed by 3-column feature grid."
+    },
+    "mobile": "Stack everything vertically. Ensure touch targets are 44px+."
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-[#00FF94] text-black hover:bg-[#00CC76] font-bold rounded-none uppercase tracking-wider px-8 py-4 transition-all hover:shadow-[0_0_20px_rgba(0,255,148,0.4)]",
+      "secondary": "bg-transparent border border-[#27272A] text-white hover:border-white hover:bg-white/5 rounded-none uppercase tracking-wider px-8 py-4 transition-all",
+      "destructive": "bg-[#FF3B30] text-white hover:bg-[#CC2F26] rounded-none uppercase tracking-wider px-8 py-4"
+    },
+    "cards": {
+      "style": "bg-[#0A0A0A] border border-[#27272A] rounded-none p-6 or p-8. No shadow, just flat dark surfaces.",
+      "hover": "hover:border-[#00FF94]/50 transition-colors duration-300"
+    },
+    "inputs": {
+      "style": "bg-[#050505] border border-[#27272A] text-white rounded-none focus:ring-1 focus:ring-[#00FF94] focus:border-[#00FF94] h-12"
+    },
+    "status_indicators": {
+      "available": "w-4 h-4 rounded-full bg-[#00FF94] animate-pulse shadow-[0_0_10px_#00FF94]",
+      "full": "w-4 h-4 rounded-full bg-[#FF3B30]"
+    }
+  },
+  "visual_enhancers": {
+    "textures": "Use a subtle 'scanline' or 'noise' overlay if possible, but keep it minimal.",
+    "borders": "1px solid borders are key. Use them to define structure.",
+    "glows": "Use subtle drop-shadows with colored hues for active states (e.g., shadow-[0_0_15px_rgba(0,255,148,0.3)])."
+  },
+  "image_urls": {
+    "hero_background": "https://images.unsplash.com/photo-1762279388988-3f8abcc7dca2?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxODd8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMGRpZ2l0YWwlMjBkYXRhJTIwc3RyZWFtJTIwZGFyayUyMG5lb258ZW58MHx8fHwxNzcwMDYxNTI0fDA&ixlib=rb-4.1.0&q=85",
+    "accent_abstract": "https://images.unsplash.com/photo-1764258560730-d167e5deda65?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxODd8MHwxfHNlYXJjaHwyfHxhYnN0cmFjdCUyMGRpZ2l0YWwlMjBkYXRhJTIwc3RyZWFtJTIwZGFyayUyMG5lb258ZW58MHx8fHwxNzcwMDYxNTI0fDA&ixlib=rb-4.1.0&q=85"
+  },
+  "instructions_to_main_agent": [
+    "1. INSTALL FONTS: Add 'JetBrains Mono' and 'Inter' from Google Fonts to index.html.",
+    "2. THEME SETUP: Configure tailwind.config.js to use the specific neon colors defined in 'colors.palette'. Ensure 'dark' mode is forced or default.",
+    "3. LANDING PAGE: Build a high-conversion landing page. Hero section must use the 'hero_background' image with a dark overlay (bg-black/80) so text is readable. Headline: 'Never Miss a CEnT-S Spot Again'. CTA: 'Login with Google' (use a distinct style for this).",
+    "4. DASHBOARD: Implement the 'Bento Grid' layout. The 'Status Card' is the hero - make it big. If spots are available, the whole card should have a subtle green glow. If full, red.",
+    "5. ALERTS: Use Shadcn 'Switch' component for toggling Email/SMS/WhatsApp. Style them to match the neon theme (green when active).",
+    "6. HISTORY: Use a simple, dense table for notification history. Font: JetBrains Mono for timestamps and status.",
+    "7. MOBILE: Ensure the 'Status' is the first thing visible on mobile. Stack the history below it.",
+    "8. TESTING: Add data-testid to all interactive elements (buttons, inputs, toggles)."
+  ],
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "Dark colors look good when used independently without gradients. DO NOT use dark colors as gradients",
+    "Don't make generic centered layouts, simplistic gradients, and uniform styling.",
+    "Create depth through layered design elements with z-index hierarchy",
+    "Use glass-morphism effects with backdrop filters (12-24px blur)",
+    "You MUST NOT apply universal transition. Eg: transition: all. This results in breaking transforms. Always add transitions for specific interactive elements like button, input excluding transforms",
+    "You MUST NOT center align the app container, ie do not add .App { text-align: center; } in the css file. This disrupts the human natural reading flow of text",
+    "Always use modern button styles like pill-shaped, or sharp button with interaction animations & color relevant to the app style",
+    "NEVER: use AI assistant Emoji characters like 🤖🧠💭💡🔮🎯📚🎭🎬🎪🎉🎊🎁🎀🎂🍰🎈🎨🎰💰💵💳🏦💎🪙💸🤑📊📈📉💹🔢🏆🥇 etc for icons.",
+    "Every interaction needs micro-animations - hover states, transitions, parallax effects, and entrance animations. Static = dead.",
+    "Use 2-3x more spacing than feels comfortable. Cramped designs look cheap.",
+    "Subtle grain textures, noise overlays, custom cursors, selection states, and loading animations: separates good from extraordinary.",
+    "Main agent relies on these image URLs. Missing categories (especially sponsor logos) = main agent will use placeholder text which is FORBIDDEN",
+    "Prioritize using pre-existing components from src/components/ui when applicable",
+    "Create new components that match the style and conventions of existing components when needed",
+    "Examine existing components to understand the project's component patterns before creating new ones",
+    "Components MUST use named exports (export const ComponentName = ...)",
+    "Pages MUST use default exports (export default function PageName() {...})",
+    "Use sonner for toasts. Sonner component are located in /app/src/components/ui/sonner.tsx"
+  ]
+}
