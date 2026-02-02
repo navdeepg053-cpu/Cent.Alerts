@@ -22,6 +22,73 @@ import { toast } from "sonner";
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
+// Separate component for available spot card
+function AvailableSpotCard({ spot }) {
+  return (
+    <div className="bg-[#050505] border border-[#00FF94]/30 p-4">
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="font-display font-semibold text-white">
+            {spot.university}
+          </p>
+          <p className="text-gray-400 text-sm">
+            {spot.city}, {spot.region}
+          </p>
+        </div>
+        <div className="text-right">
+          <p className="font-display text-[#00FF94] font-bold">
+            {spot.spots} spots
+          </p>
+          <p className="text-gray-500 text-xs">
+            Deadline: {spot.registration_deadline}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Separate component for table row
+function SpotTableRow({ spot }) {
+  const isAvailable = spot.status && spot.status.toUpperCase().includes("DISPONIBILI");
+  
+  return (
+    <tr className="border-b border-[#1A1A1A] hover:bg-[#0F0F0F]">
+      <td className="p-4">
+        <span
+          className={`inline-flex items-center gap-2 px-3 py-1 text-xs font-display uppercase tracking-wider ${
+            isAvailable ? "status-available" : "status-full"
+          }`}
+        >
+          <span
+            className={`w-2 h-2 rounded-full ${
+              isAvailable ? "bg-[#00FF94]" : "bg-[#FF3B30]"
+            }`}
+          />
+          {isAvailable ? "AVAILABLE" : "FULL"}
+        </span>
+      </td>
+      <td className="p-4 font-display text-sm">{spot.university}</td>
+      <td className="p-4 text-gray-400 text-sm">
+        {spot.city}, {spot.region}
+      </td>
+      <td className="p-4 font-display text-sm">{spot.test_date}</td>
+      <td className="p-4 text-gray-400 text-sm">
+        {spot.registration_deadline}
+      </td>
+      <td className="p-4">
+        <span
+          className={`font-display font-bold ${
+            isAvailable ? "text-[#00FF94]" : "text-gray-500"
+          }`}
+        >
+          {spot.spots}
+        </span>
+      </td>
+    </tr>
+  );
+}
+
 export default function Dashboard({ user, setUser }) {
   const navigate = useNavigate();
   const [availability, setAvailability] = useState(null);
@@ -43,7 +110,6 @@ export default function Dashboard({ user, setUser }) {
 
   useEffect(() => {
     fetchAvailability();
-    // Refresh every 30 seconds
     const interval = setInterval(fetchAvailability, 30000);
     return () => clearInterval(interval);
   }, [fetchAvailability]);
@@ -90,10 +156,11 @@ export default function Dashboard({ user, setUser }) {
     }
   };
 
-  const availableSpots = availability?.spots?.filter(
-    (s) => s.status?.toUpperCase().includes("DISPONIBILI")
-  ) || [];
-
+  // Get available spots
+  const spots = availability?.spots || [];
+  const availableSpots = spots.filter(
+    (s) => s.status && s.status.toUpperCase().includes("DISPONIBILI")
+  );
   const hasAvailableSpots = availableSpots.length > 0;
 
   if (loading) {
@@ -120,7 +187,7 @@ export default function Dashboard({ user, setUser }) {
             <div className="flex items-center gap-4">
               <Link
                 to="/history"
-                className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+                className="flex items-center gap-2 text-gray-400 hover:text-white"
                 data-testid="history-link"
               >
                 <History className="w-4 h-4" />
@@ -147,9 +214,9 @@ export default function Dashboard({ user, setUser }) {
       </nav>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Bento Grid Layout */}
+        {/* Grid Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Status Card - Main Hero (col-span-2) */}
+          {/* Status Card */}
           <div
             className={`lg:col-span-2 bg-[#0A0A0A] border p-8 animate-fadeIn ${
               hasAvailableSpots
@@ -195,30 +262,8 @@ export default function Dashboard({ user, setUser }) {
                 </div>
 
                 <div className="space-y-3">
-                  {availableSpots.map((spot, idx) => (
-                    <div
-                      key={idx}
-                      className="bg-[#050505] border border-[#00FF94]/30 p-4"
-                    >
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <p className="font-display font-semibold text-white">
-                            {spot.university}
-                          </p>
-                          <p className="text-gray-400 text-sm">
-                            {spot.city}, {spot.region}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-display text-[#00FF94] font-bold">
-                            {spot.spots} spots
-                          </p>
-                          <p className="text-gray-500 text-xs">
-                            Deadline: {spot.registration_deadline}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
+                  {availableSpots.map((spot) => (
+                    <AvailableSpotCard key={spot.spot_id} spot={spot} />
                   ))}
                 </div>
 
@@ -226,7 +271,7 @@ export default function Dashboard({ user, setUser }) {
                   href="https://testcisia.it/studenti_tolc/login_sso.php"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-6 inline-flex items-center gap-2 bg-[#00FF94] text-black font-bold px-6 py-3 uppercase tracking-wider hover:bg-[#00CC76] transition-colors"
+                  className="mt-6 inline-flex items-center gap-2 bg-[#00FF94] text-black font-bold px-6 py-3 uppercase tracking-wider hover:bg-[#00CC76]"
                   data-testid="book-now-btn"
                 >
                   BOOK NOW
@@ -240,7 +285,7 @@ export default function Dashboard({ user, setUser }) {
                 </p>
                 <p className="text-gray-400">
                   All {availability?.total_cent_casa || 0} CENT@CASA sessions are currently full.
-                  We'll notify you when spots open.
+                  We will notify you when spots open.
                 </p>
               </div>
             )}
@@ -337,7 +382,7 @@ export default function Dashboard({ user, setUser }) {
             </div>
           </div>
 
-          {/* All CENT@CASA Sessions Table (col-span-3) */}
+          {/* All Sessions Table */}
           <div className="lg:col-span-3 bg-[#0A0A0A] border border-[#27272A] p-8 animate-fadeIn delay-200">
             <h2 className="font-display text-lg font-bold uppercase tracking-wider mb-6">
               ALL CENT@CASA SESSIONS
@@ -368,52 +413,14 @@ export default function Dashboard({ user, setUser }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {availability?.spots?.length > 0 ? (
-                    availability.spots.map((spot, idx) => {
-                      const isAvailable = spot.status?.toUpperCase().includes("DISPONIBILI");
-                      return (
-                        <tr
-                          key={idx}
-                          className="border-b border-[#1A1A1A] hover:bg-[#0F0F0F] transition-colors"
-                        >
-                          <td className="p-4">
-                            <span
-                              className={`inline-flex items-center gap-2 px-3 py-1 text-xs font-display uppercase tracking-wider ${
-                                isAvailable ? "status-available" : "status-full"
-                              }`}
-                            >
-                              <span
-                                className={`w-2 h-2 rounded-full ${
-                                  isAvailable ? "bg-[#00FF94]" : "bg-[#FF3B30]"
-                                }`}
-                              />
-                              {isAvailable ? "AVAILABLE" : "FULL"}
-                            </span>
-                          </td>
-                          <td className="p-4 font-display text-sm">{spot.university}</td>
-                          <td className="p-4 text-gray-400 text-sm">
-                            {spot.city}, {spot.region}
-                          </td>
-                          <td className="p-4 font-display text-sm">{spot.test_date}</td>
-                          <td className="p-4 text-gray-400 text-sm">
-                            {spot.registration_deadline}
-                          </td>
-                          <td className="p-4">
-                            <span
-                              className={`font-display font-bold ${
-                                isAvailable ? "text-[#00FF94]" : "text-gray-500"
-                              }`}
-                            >
-                              {spot.spots}
-                            </span>
-                          </td>
-                        </tr>
-                      );
-                    })
+                  {spots.length > 0 ? (
+                    spots.map((spot) => (
+                      <SpotTableRow key={spot.spot_id} spot={spot} />
+                    ))
                   ) : (
                     <tr>
                       <td colSpan={6} className="p-8 text-center text-gray-500">
-                        No data available. Click refresh to fetch latest data
+                        No data available
                       </td>
                     </tr>
                   )}
