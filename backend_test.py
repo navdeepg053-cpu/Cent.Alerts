@@ -202,16 +202,14 @@ class CentSAPITester:
                 'Content-Type': 'application/json'
             }
             data = {
-                "alert_email": True,
-                "alert_sms": True,
-                "alert_whatsapp": False
+                "alert_telegram": True
             }
             response = requests.put(f"{self.api_url}/users/alerts", headers=headers, json=data, timeout=10)
             success = response.status_code == 200
             
             if success:
                 resp_data = response.json()
-                details = f"Status: {response.status_code}, Email: {resp_data.get('alert_email')}, SMS: {resp_data.get('alert_sms')}"
+                details = f"Status: {response.status_code}, Telegram alerts: {resp_data.get('alert_telegram')}"
             else:
                 details = f"Status: {response.status_code}"
                 
