@@ -8,21 +8,17 @@ import {
   RefreshCw, 
   LogOut, 
   Bell, 
-  Mail, 
-  Smartphone, 
-  MessageCircle,
   ExternalLink,
   Clock,
   History,
   User,
-  Phone
+  Send
 } from "lucide-react";
 import { toast } from "sonner";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-// Separate component for available spot card
 function AvailableSpotCard({ spot }) {
   return (
     <div className="bg-[#050505] border border-[#00FF94]/30 p-4">
@@ -48,7 +44,6 @@ function AvailableSpotCard({ spot }) {
   );
 }
 
-// Separate component for table row
 function SpotTableRow({ spot }) {
   const isAvailable = spot.status && spot.status.toUpperCase().includes("DISPONIBILI");
   
@@ -137,18 +132,19 @@ export default function Dashboard({ user, setUser }) {
     }
   };
 
-  const handleAlertToggle = async (type, value) => {
+  const handleAlertToggle = async (value) => {
+    if (!user?.telegram_chat_id) {
+      toast.error("Please connect Telegram first");
+      return;
+    }
+    
     setSavingAlerts(true);
-    const newSettings = {
-      alert_email: type === "email" ? value : user.alert_email,
-      alert_sms: type === "sms" ? value : user.alert_sms,
-      alert_whatsapp: type === "whatsapp" ? value : user.alert_whatsapp,
-    };
-
     try {
-      const response = await axios.put(`${API}/users/alerts`, newSettings);
+      const response = await axios.put(`${API}/users/alerts`, {
+        alert_telegram: value
+      });
       setUser(response.data);
-      toast.success(`${type.toUpperCase()} alerts ${value ? "enabled" : "disabled"}`);
+      toast.success(`Telegram alerts ${value ? "enabled" : "disabled"}`);
     } catch (error) {
       toast.error("Failed to update alert settings");
     } finally {
@@ -156,7 +152,6 @@ export default function Dashboard({ user, setUser }) {
     }
   };
 
-  // Get available spots
   const spots = availability?.spots || [];
   const availableSpots = spots.filter(
     (s) => s.status && s.status.toUpperCase().includes("DISPONIBILI")
@@ -214,7 +209,6 @@ export default function Dashboard({ user, setUser }) {
       </nav>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Grid Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Status Card */}
           <div
@@ -306,79 +300,51 @@ export default function Dashboard({ user, setUser }) {
             <div className="flex items-center gap-3 mb-6">
               <Bell className="w-5 h-5 text-[#00FF94]" />
               <h2 className="font-display text-lg font-bold uppercase tracking-wider">
-                ALERT SETTINGS
+                TELEGRAM ALERTS
               </h2>
             </div>
 
             <div className="space-y-6">
-              {/* Email Toggle */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Mail className="w-4 h-4 text-gray-400" />
-                  <div>
-                    <Label className="text-white">Email Alerts</Label>
-                    <p className="text-gray-500 text-xs">{user?.email}</p>
+              {/* Telegram Status */}
+              {user?.telegram_chat_id ? (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Send className="w-4 h-4 text-[#00FF94]" />
+                    <div>
+                      <Label className="text-white">Telegram Connected</Label>
+                      <p className="text-gray-500 text-xs">Alerts enabled</p>
+                    </div>
                   </div>
+                  <Switch
+                    data-testid="telegram-alert-toggle"
+                    checked={user?.alert_telegram ?? false}
+                    onCheckedChange={handleAlertToggle}
+                    disabled={savingAlerts}
+                    className="data-[state=checked]:bg-[#00FF94]"
+                  />
                 </div>
-                <Switch
-                  data-testid="email-alert-toggle"
-                  checked={user?.alert_email ?? true}
-                  onCheckedChange={(checked) => handleAlertToggle("email", checked)}
-                  disabled={savingAlerts}
-                  className="data-[state=checked]:bg-[#00FF94]"
-                />
-              </div>
-
-              {/* SMS Toggle */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Smartphone className="w-4 h-4 text-gray-400" />
-                  <div>
-                    <Label className="text-white">SMS Alerts</Label>
-                    <p className="text-gray-500 text-xs">
-                      {user?.phone || "No phone set"}
-                    </p>
-                  </div>
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-gray-400 text-sm">
+                    Connect your Telegram to receive instant alerts when CENT@CASA spots open.
+                  </p>
+                  <Link
+                    to="/setup-telegram"
+                    className="flex items-center justify-center gap-2 bg-[#0088cc] text-white font-bold px-6 py-3 uppercase tracking-wider hover:bg-[#006699] w-full"
+                    data-testid="connect-telegram-btn"
+                  >
+                    <Send className="w-4 h-4" />
+                    Connect Telegram
+                  </Link>
                 </div>
-                <Switch
-                  data-testid="sms-alert-toggle"
-                  checked={user?.alert_sms ?? false}
-                  onCheckedChange={(checked) => handleAlertToggle("sms", checked)}
-                  disabled={savingAlerts || !user?.phone}
-                  className="data-[state=checked]:bg-[#00FF94]"
-                />
-              </div>
-
-              {/* WhatsApp Toggle */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <MessageCircle className="w-4 h-4 text-gray-400" />
-                  <div>
-                    <Label className="text-white">WhatsApp Alerts</Label>
-                    <p className="text-gray-500 text-xs">
-                      {user?.phone || "No phone set"}
-                    </p>
-                  </div>
-                </div>
-                <Switch
-                  data-testid="whatsapp-alert-toggle"
-                  checked={user?.alert_whatsapp ?? false}
-                  onCheckedChange={(checked) => handleAlertToggle("whatsapp", checked)}
-                  disabled={savingAlerts || !user?.phone}
-                  className="data-[state=checked]:bg-[#00FF94]"
-                />
-              </div>
-
-              {!user?.phone && (
-                <Link
-                  to="/setup-phone"
-                  className="flex items-center gap-2 text-[#00FF94] text-sm hover:underline mt-4"
-                  data-testid="add-phone-link"
-                >
-                  <Phone className="w-4 h-4" />
-                  Add phone number for SMS/WhatsApp
-                </Link>
               )}
+            </div>
+
+            {/* Info */}
+            <div className="mt-6 pt-6 border-t border-[#27272A]">
+              <p className="text-gray-500 text-xs">
+                Free instant notifications via Telegram. No SMS charges.
+              </p>
             </div>
           </div>
 
