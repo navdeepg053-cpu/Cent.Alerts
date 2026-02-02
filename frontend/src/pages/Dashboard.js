@@ -413,7 +413,7 @@ export default function Dashboard({ user, setUser }) {
                   ) : (
                     <tr>
                       <td colSpan={6} className="p-8 text-center text-gray-500">
-                        No data available. Click refresh to fetch latest data.
+                        No data available. Click refresh to fetch latest data
                       </td>
                     </tr>
                   )}
