@@ -219,10 +219,29 @@ class CentSAPITester:
             self.log_test("Update Alert Settings", False, f"Error: {str(e)}")
             return False, {}
 
-    def test_phone_update(self):
-        """Test phone number update"""
+    def test_telegram_bot_info(self):
+        """Test telegram bot info endpoint"""
+        try:
+            response = requests.get(f"{self.api_url}/telegram/bot-info", timeout=10)
+            success = response.status_code == 200
+            
+            if success:
+                data = response.json()
+                username = data.get('username', 'N/A')
+                details = f"Status: {response.status_code}, Bot username: @{username}"
+            else:
+                details = f"Status: {response.status_code}"
+                
+            self.log_test("Telegram Bot Info", success, details)
+            return success, response.json() if success else {}
+        except Exception as e:
+            self.log_test("Telegram Bot Info", False, f"Error: {str(e)}")
+            return False, {}
+
+    def test_telegram_connect(self):
+        """Test telegram connection endpoint"""
         if not self.session_token:
-            self.log_test("Update Phone Number", False, "No session token available")
+            self.log_test("Connect Telegram", False, "No session token available")
             return False, {}
             
         try:
@@ -230,20 +249,20 @@ class CentSAPITester:
                 'Authorization': f'Bearer {self.session_token}',
                 'Content-Type': 'application/json'
             }
-            data = {"phone": "+39987654321"}
-            response = requests.post(f"{self.api_url}/users/phone", headers=headers, json=data, timeout=10)
+            data = {"chat_id": "123456789"}
+            response = requests.post(f"{self.api_url}/users/telegram", headers=headers, json=data, timeout=10)
             success = response.status_code == 200
             
             if success:
                 resp_data = response.json()
-                details = f"Status: {response.status_code}, Phone: {resp_data.get('phone')}"
+                details = f"Status: {response.status_code}, Chat ID: {resp_data.get('telegram_chat_id')}"
             else:
                 details = f"Status: {response.status_code}"
                 
-            self.log_test("Update Phone Number", success, details)
+            self.log_test("Connect Telegram", success, details)
             return success, response.json() if success else {}
         except Exception as e:
-            self.log_test("Update Phone Number", False, f"Error: {str(e)}")
+            self.log_test("Connect Telegram", False, f"Error: {str(e)}")
             return False, {}
 
     def cleanup_test_data(self):
