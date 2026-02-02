@@ -468,36 +468,42 @@ async def get_bot_info():
 async def telegram_webhook(request: Request):
     """Handle Telegram webhook updates"""
     if not telegram_bot:
-        raise HTTPException(status_code=503, detail="Telegram bot not configured")
+        logger.error("Telegram bot not configured")
+        return {"ok": True}  # Return ok to prevent Telegram from retrying
     
     try:
         data = await request.json()
+        logger.info(f"Received Telegram webhook: {data}")
         
         # Handle /start command - send chat ID to user
         if 'message' in data:
             message = data['message']
             chat_id = message.get('chat', {}).get('id')
             text = message.get('text', '')
+            user_name = message.get('from', {}).get('first_name', 'there')
             
-            if text.startswith('/start'):
-                welcome_msg = f"""👋 *Welcome to CEnT\\-S Alert Bot\\!*
-
-Your Chat ID is: `{chat_id}`
-
-Copy this ID and paste it in the app to connect your Telegram\\.
-
-Once connected, you'll receive instant alerts when CENT@CASA spots become available\\!"""
+            logger.info(f"Message from {chat_id}: {text}")
+            
+            if chat_id and (text.startswith('/start') or text == '/start'):
+                welcome_msg = f"👋 Welcome to CEnT-S Alert Bot, {user_name}!\n\n" \
+                              f"Your Chat ID is:\n\n" \
+                              f"👉 {chat_id}\n\n" \
+                              f"Copy this number and paste it in the app to connect your Telegram.\n\n" \
+                              f"Once connected, you'll receive instant alerts when CENT@CASA spots become available!"
                 
-                await telegram_bot.send_message(
-                    chat_id=chat_id,
-                    text=welcome_msg,
-                    parse_mode=telegram.constants.ParseMode.MARKDOWN_V2
-                )
+                try:
+                    await telegram_bot.send_message(
+                        chat_id=chat_id,
+                        text=welcome_msg
+                    )
+                    logger.info(f"Sent welcome message to {chat_id}")
+                except Exception as send_error:
+                    logger.error(f"Failed to send message to {chat_id}: {send_error}")
         
-        return {"status": "ok"}
+        return {"ok": True}
     except Exception as e:
         logger.error(f"Webhook error: {e}")
-        return {"status": "error"}
+        return {"ok": True}  # Always return ok to prevent retries
 
 # ========== AVAILABILITY ROUTES ==========
 
