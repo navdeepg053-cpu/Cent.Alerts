@@ -464,6 +464,41 @@ async def get_bot_info():
         logger.error(f"Failed to get bot info: {e}")
         raise HTTPException(status_code=503, detail="Failed to get bot info")
 
+@api_router.post("/telegram/webhook")
+async def telegram_webhook(request: Request):
+    """Handle Telegram webhook updates"""
+    if not telegram_bot:
+        raise HTTPException(status_code=503, detail="Telegram bot not configured")
+    
+    try:
+        data = await request.json()
+        
+        # Handle /start command - send chat ID to user
+        if 'message' in data:
+            message = data['message']
+            chat_id = message.get('chat', {}).get('id')
+            text = message.get('text', '')
+            
+            if text.startswith('/start'):
+                welcome_msg = f"""👋 *Welcome to CEnT\\-S Alert Bot\\!*
+
+Your Chat ID is: `{chat_id}`
+
+Copy this ID and paste it in the app to connect your Telegram\\.
+
+Once connected, you'll receive instant alerts when CENT@CASA spots become available\\!"""
+                
+                await telegram_bot.send_message(
+                    chat_id=chat_id,
+                    text=welcome_msg,
+                    parse_mode=telegram.constants.ParseMode.MARKDOWN_V2
+                )
+        
+        return {"status": "ok"}
+    except Exception as e:
+        logger.error(f"Webhook error: {e}")
+        return {"status": "error"}
+
 # ========== AVAILABILITY ROUTES ==========
 
 @api_router.get("/availability")
