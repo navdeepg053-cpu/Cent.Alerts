@@ -1,34 +1,146 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+/* CEnT-S Alert - App Styles */
+
+/* Spinner animation */
+.spinner {
+    animation: spin 1s linear infinite;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
-}
-
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
-}
-
-.App-link {
-    color: #61dafb;
-}
-
-@keyframes App-logo-spin {
+@keyframes spin {
     from {
         transform: rotate(0deg);
     }
     to {
         transform: rotate(360deg);
     }
+}
+
+/* Pulse indicator */
+.pulse-indicator {
+    animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+    0%, 100% {
+        box-shadow: 0 0 5px currentColor, 0 0 10px currentColor;
+        opacity: 1;
+    }
+    50% {
+        box-shadow: 0 0 10px currentColor, 0 0 20px currentColor;
+        opacity: 0.8;
+    }
+}
+
+/* Neon glow */
+.neon-glow {
+    box-shadow: 0 0 20px rgba(0, 255, 148, 0.3);
+}
+
+.neon-text {
+    text-shadow: 0 0 10px rgba(0, 255, 148, 0.5);
+}
+
+/* Card hover */
+.card-hover {
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-hover:hover {
+    border-color: rgba(0, 255, 148, 0.5);
+}
+
+/* Status badges */
+.status-available {
+    background-color: rgba(0, 255, 148, 0.1);
+    color: #00FF94;
+    border: 1px solid rgba(0, 255, 148, 0.3);
+}
+
+.status-full {
+    background-color: rgba(255, 59, 48, 0.1);
+    color: #FF3B30;
+    border: 1px solid rgba(255, 59, 48, 0.3);
+}
+
+/* Entrance animations */
+.animate-fadeIn {
+    animation: fadeIn 0.3s ease-out forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-slideUp {
+    animation: slideUp 0.4s ease-out forwards;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Animation delays */
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }
+
+/* Table styles */
+.table-dark {
+    background-color: #0A0A0A;
+    border: 1px solid #27272A;
+}
+
+.table-dark th {
+    background-color: #050505;
+    border-bottom: 1px solid #27272A;
+}
+
+.table-dark td {
+    border-bottom: 1px solid #1A1A1A;
+}
+
+/* Phone input custom styles */
+.PhoneInput {
+    background-color: #050505 !important;
+    border: 1px solid #27272A !important;
+    border-radius: 0 !important;
+    padding: 0.75rem !important;
+}
+
+.PhoneInput:focus-within {
+    border-color: #00FF94 !important;
+    box-shadow: 0 0 0 1px #00FF94 !important;
+}
+
+.PhoneInputInput {
+    background-color: transparent !important;
+    color: #ffffff !important;
+    border: none !important;
+    outline: none !important;
+    font-family: 'JetBrains Mono', monospace !important;
+}
+
+.PhoneInputCountrySelect {
+    background-color: #0A0A0A !important;
+    color: #ffffff !important;
+    border: none !important;
+}
+
+.PhoneInputCountrySelectArrow {
+    border-color: #ffffff !important;
 }
