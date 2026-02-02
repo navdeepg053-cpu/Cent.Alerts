@@ -301,13 +301,14 @@ class CentSAPITester:
         self.test_root_endpoint()
         self.test_health_endpoint()
         self.test_availability_endpoint()
+        self.test_telegram_bot_info()
         
         # Create test user for authenticated endpoints
         if self.create_test_user_session():
             self.test_auth_me_endpoint()
             self.test_notification_history_endpoint()
+            self.test_telegram_connect()
             self.test_alert_settings_update()
-            self.test_phone_update()
             self.cleanup_test_data()
         
         # Print summary
