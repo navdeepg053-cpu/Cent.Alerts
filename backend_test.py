@@ -109,10 +109,8 @@ class CentSAPITester:
                 email: "{email}",
                 name: "Test User",
                 picture: "https://via.placeholder.com/150",
-                phone: "+39123456789",
-                alert_email: true,
-                alert_sms: false,
-                alert_whatsapp: false,
+                telegram_chat_id: "123456789",
+                alert_telegram: false,
                 created_at: new Date()
             }});
             db.user_sessions.insertOne({{
