@@ -78,7 +78,7 @@ export default function Landing() {
 
             <p className="text-lg text-gray-400 max-w-2xl mb-12 leading-relaxed">
               Get instant alerts when a CEnT-S entrance test spot opens. We monitor the CISIA 
-              calendar 24/7 and notify you via email, SMS, and WhatsApp the moment a 
+              calendar 24/7 and notify you via Telegram the moment a 
               CENT@CASA position becomes available.
             </p>
 
@@ -124,9 +124,9 @@ export default function Landing() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-24 animate-slideUp delay-200">
             <div className="bg-[#0A0A0A] border border-[#27272A] p-8 card-hover">
               <Bell className="w-8 h-8 text-[#00FF94] mb-4" />
-              <h3 className="font-display text-lg font-semibold mb-2">INSTANT ALERTS</h3>
+              <h3 className="font-display text-lg font-semibold mb-2">TELEGRAM ALERTS</h3>
               <p className="text-gray-400 text-sm">
-                Email, SMS & WhatsApp notifications the second a spot opens.
+                Free instant Telegram notifications the second a spot opens.
               </p>
             </div>
 
