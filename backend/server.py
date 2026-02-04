@@ -14,6 +14,7 @@ import httpx
 import asyncio
 from bs4 import BeautifulSoup
 from contextlib import asynccontextmanager
+import traceback
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -39,7 +40,6 @@ CISIA_URL = "https://testcisia.it/calendario.php?tolc=cents&lingua=inglese"
 # Background task states
 scraper_running = False
 telegram_polling_running = False
-last_telegram_update_id = 0
 
 # ========== MODELS ==========
 
@@ -90,150 +90,190 @@ class Notification(BaseModel):
     sent_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     status: str = "sent"
 
-# ========== TELEGRAM FUNCTIONS (BULLETPROOF) ==========
+# ========== IRONCLAD TELEGRAM FUNCTIONS ==========
 
-async def telegram_api_call(method: str, data: dict = None, retries: int = 3) -> dict:
-    """Make a Telegram API call with retries - NEVER FAILS SILENTLY"""
-    if not TELEGRAM_API_URL:
-        logger.error("Telegram not configured")
-        return {"ok": False, "error": "Not configured"}
+async def telegram_send_message(chat_id, text: str, retries: int = 5) -> bool:
+    """
+    BULLETPROOF message sender - will retry until successful
+    Uses simple HTTP POST, no complex libraries
+    """
+    if not TELEGRAM_BOT_TOKEN:
+        logger.error("TELEGRAM_BOT_TOKEN not set!")
+        return False
     
-    url = f"{TELEGRAM_API_URL}/{method}"
-    
-    for attempt in range(retries):
-        try:
-            async with httpx.AsyncClient(timeout=30.0) as http_client:
-                if data:
-                    response = await http_client.post(url, json=data)
-                else:
-                    response = await http_client.get(url)
-                
-                result = response.json()
-                
-                if result.get("ok"):
-                    return result
-                else:
-                    logger.warning(f"Telegram API error (attempt {attempt + 1}): {result}")
-                    
-        except Exception as e:
-            logger.error(f"Telegram API exception (attempt {attempt + 1}): {e}")
-        
-        if attempt < retries - 1:
-            await asyncio.sleep(1)  # Wait before retry
-    
-    return {"ok": False, "error": "All retries failed"}
-
-async def send_telegram_message(chat_id: str, text: str) -> bool:
-    """Send a Telegram message - guaranteed delivery with retries"""
-    result = await telegram_api_call("sendMessage", {
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    payload = {
         "chat_id": chat_id,
         "text": text,
         "parse_mode": "HTML"
-    })
+    }
     
-    if result.get("ok"):
-        logger.info(f"Message sent to {chat_id}")
-        return True
-    else:
-        logger.error(f"Failed to send message to {chat_id}: {result}")
-        return False
-
-async def get_telegram_updates(offset: int = 0) -> List[dict]:
-    """Get updates from Telegram using long polling"""
-    result = await telegram_api_call("getUpdates", {
-        "offset": offset,
-        "timeout": 30,
-        "allowed_updates": ["message"]
-    })
-    
-    if result.get("ok"):
-        return result.get("result", [])
-    return []
-
-async def process_telegram_update(update: dict):
-    """Process a single Telegram update"""
-    try:
-        if "message" not in update:
-            return
+    for attempt in range(retries):
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as http:
+                response = await http.post(url, json=payload)
+                data = response.json()
+                
+                if data.get("ok"):
+                    logger.info(f"✓ Message sent to {chat_id}")
+                    return True
+                else:
+                    logger.warning(f"Telegram API error: {data}")
+        except Exception as e:
+            logger.error(f"Send attempt {attempt + 1} failed: {e}")
         
-        message = update["message"]
-        chat_id = message.get("chat", {}).get("id")
+        await asyncio.sleep(0.5)  # Brief pause before retry
+    
+    logger.error(f"FAILED to send message to {chat_id} after {retries} attempts")
+    return False
+
+
+async def telegram_get_updates(offset: int = 0) -> tuple:
+    """
+    Get updates using SHORT polling (5 seconds) for reliability
+    Returns (updates_list, new_offset)
+    """
+    if not TELEGRAM_BOT_TOKEN:
+        return [], offset
+    
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getUpdates"
+    payload = {
+        "offset": offset,
+        "timeout": 5,  # SHORT timeout - more reliable
+        "allowed_updates": ["message"]
+    }
+    
+    try:
+        async with httpx.AsyncClient(timeout=15.0) as http:  # Timeout > polling timeout
+            response = await http.post(url, json=payload)
+            data = response.json()
+            
+            if data.get("ok"):
+                updates = data.get("result", [])
+                if updates:
+                    # Calculate new offset
+                    new_offset = max(u.get("update_id", 0) for u in updates) + 1
+                    return updates, new_offset
+                return [], offset
+    except httpx.TimeoutException:
+        # Timeout is NORMAL for long polling - not an error
+        pass
+    except Exception as e:
+        logger.error(f"getUpdates error: {e}")
+    
+    return [], offset
+
+
+async def handle_telegram_message(message: dict):
+    """
+    Handle ANY incoming message - ALWAYS responds with chat ID
+    """
+    try:
+        chat = message.get("chat", {})
+        chat_id = chat.get("id")
         text = message.get("text", "")
         first_name = message.get("from", {}).get("first_name", "there")
         
         if not chat_id:
             return
         
-        logger.info(f"Processing message from {chat_id}: {text}")
+        logger.info(f"📩 Message from {chat_id}: {text[:50]}")
         
-        # Respond to /start or any message
-        if text.startswith("/start") or text == "/start":
-            welcome_text = (
-                f"👋 <b>Welcome to CEnT-S Alert Bot, {first_name}!</b>\n\n"
-                f"Your Chat ID is:\n\n"
+        # ALWAYS include chat ID in response
+        if text.startswith("/start"):
+            response = (
+                f"👋 <b>Welcome, {first_name}!</b>\n\n"
+                f"🔑 Your Chat ID is:\n\n"
                 f"<code>{chat_id}</code>\n\n"
-                f"👆 <b>Tap to copy</b>, then paste it in the app to connect.\n\n"
-                f"Once connected, you'll receive instant alerts when CENT@CASA spots become available!"
+                f"👆 <b>Tap the number above to copy it</b>\n\n"
+                f"Then paste it in the CEnT-S Alert app to receive notifications when CENT@CASA spots open!"
             )
-            await send_telegram_message(str(chat_id), welcome_text)
-        
         elif text.startswith("/help"):
-            help_text = (
-                "🤖 <b>CEnT-S Alert Bot Commands</b>\n\n"
-                "/start - Get your Chat ID\n"
-                "/help - Show this help\n"
-                "/status - Check bot status\n\n"
-                "This bot monitors CISIA calendar for CENT@CASA test spots and sends instant alerts!"
-            )
-            await send_telegram_message(str(chat_id), help_text)
-        
-        elif text.startswith("/status"):
-            status_text = (
-                "✅ <b>Bot Status: ONLINE</b>\n\n"
-                f"🔍 Monitoring: Active\n"
-                f"⏱ Check interval: 10 minutes\n"
-                f"📍 Target: CENT@CASA spots\n\n"
+            response = (
+                f"🤖 <b>CEnT-S Alert Bot</b>\n\n"
+                f"Commands:\n"
+                f"/start - Get your Chat ID\n"
+                f"/help - Show this help\n"
+                f"/id - Show your Chat ID again\n\n"
                 f"Your Chat ID: <code>{chat_id}</code>"
             )
-            await send_telegram_message(str(chat_id), status_text)
-        
-        else:
-            # Respond to any other message with chat ID
-            response_text = (
-                f"Your Chat ID is: <code>{chat_id}</code>\n\n"
-                f"Use /start for setup instructions or /help for commands."
+        elif text.startswith("/id"):
+            response = f"🔑 Your Chat ID: <code>{chat_id}</code>"
+        elif text.startswith("/status"):
+            response = (
+                f"✅ <b>Bot Status: ONLINE</b>\n\n"
+                f"Monitoring CENT@CASA spots 24/7\n"
+                f"Your Chat ID: <code>{chat_id}</code>"
             )
-            await send_telegram_message(str(chat_id), response_text)
-            
+        else:
+            # For ANY other message, still show chat ID
+            response = (
+                f"Your Chat ID: <code>{chat_id}</code>\n\n"
+                f"Send /start for setup instructions."
+            )
+        
+        await telegram_send_message(chat_id, response)
+        
     except Exception as e:
-        logger.error(f"Error processing update: {e}")
+        logger.error(f"Error handling message: {e}\n{traceback.format_exc()}")
+
 
 async def telegram_polling_loop():
-    """Continuous polling loop for Telegram updates - BULLETPROOF"""
-    global telegram_polling_running, last_telegram_update_id
+    """
+    IRONCLAD polling loop - runs forever, handles all errors
+    Uses short polling for maximum reliability
+    """
+    global telegram_polling_running
     telegram_polling_running = True
+    offset = 0
     
-    logger.info("Starting Telegram polling loop...")
+    logger.info("🚀 Starting IRONCLAD Telegram polling...")
     
-    # First, delete any webhook to ensure polling works
-    await telegram_api_call("deleteWebhook", {"drop_pending_updates": False})
+    # Delete any existing webhook first
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as http:
+            await http.post(
+                f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/deleteWebhook",
+                json={"drop_pending_updates": False}
+            )
+        logger.info("✓ Webhook deleted, polling mode active")
+    except Exception as e:
+        logger.warning(f"Could not delete webhook: {e}")
+    
+    consecutive_errors = 0
     
     while telegram_polling_running:
         try:
-            updates = await get_telegram_updates(offset=last_telegram_update_id)
+            updates, new_offset = await telegram_get_updates(offset)
             
-            for update in updates:
-                update_id = update.get("update_id", 0)
-                if update_id >= last_telegram_update_id:
-                    last_telegram_update_id = update_id + 1
-                    await process_telegram_update(update)
-                    
+            if updates:
+                offset = new_offset
+                consecutive_errors = 0  # Reset error counter on success
+                
+                for update in updates:
+                    if "message" in update:
+                        await handle_telegram_message(update["message"])
+            else:
+                consecutive_errors = 0  # No updates is also success
+                
         except Exception as e:
-            logger.error(f"Polling loop error: {e}")
-            await asyncio.sleep(5)  # Wait before retrying
+            consecutive_errors += 1
+            logger.error(f"Polling error #{consecutive_errors}: {e}")
+            
+            # Back off if too many errors
+            if consecutive_errors > 10:
+                logger.warning("Too many errors, waiting 30 seconds...")
+                await asyncio.sleep(30)
+                consecutive_errors = 0
+            else:
+                await asyncio.sleep(2)
+            continue
         
-        # Small delay between polling cycles
-        await asyncio.sleep(1)
+        # Small delay between polls
+        await asyncio.sleep(0.5)
+    
+    logger.info("Telegram polling stopped")
+
 
 # ========== SCRAPER FUNCTIONS ==========
 
@@ -289,12 +329,9 @@ async def scrape_cisia_page() -> List[AvailabilitySpot]:
     
     return spots
 
-async def send_spot_alert(user: dict, spot: AvailabilitySpot) -> bool:
-    """Send alert about available spot to user"""
-    chat_id = user.get('telegram_chat_id')
-    if not chat_id:
-        return False
-    
+
+async def send_spot_alert(chat_id: str, spot: AvailabilitySpot) -> bool:
+    """Send alert about available spot"""
     alert_text = (
         f"🟢 <b>CENT@CASA SPOT AVAILABLE!</b>\n\n"
         f"🏫 <b>University:</b> {spot.university}\n"
@@ -304,15 +341,16 @@ async def send_spot_alert(user: dict, spot: AvailabilitySpot) -> bool:
         f"🎫 <b>Spots:</b> {spot.spots}\n\n"
         f"👉 <a href='https://testcisia.it/studenti_tolc/login_sso.php'>BOOK NOW</a>"
     )
-    
-    return await send_telegram_message(chat_id, alert_text)
+    return await telegram_send_message(chat_id, alert_text)
+
 
 async def notify_users_about_spot(spot: AvailabilitySpot):
     """Notify all users with Telegram alerts enabled"""
     users = await db.users.find({"alert_telegram": True}, {"_id": 0}).to_list(1000)
     
     for user in users:
-        if await send_spot_alert(user, spot):
+        chat_id = user.get('telegram_chat_id')
+        if chat_id and await send_spot_alert(chat_id, spot):
             notification = Notification(
                 user_id=user['user_id'],
                 type='telegram',
@@ -322,6 +360,7 @@ async def notify_users_about_spot(spot: AvailabilitySpot):
             notif_doc = notification.model_dump()
             notif_doc['sent_at'] = notif_doc['sent_at'].isoformat()
             await db.notifications.insert_one(notif_doc)
+
 
 async def check_for_new_spots():
     """Background task to check for new CENT@CASA spots"""
@@ -354,7 +393,7 @@ async def check_for_new_spots():
         for spot in available_spots:
             spot_key = f"{spot.university}_{spot.test_date}"
             if spot_key not in last_available_ids:
-                logger.info(f"New spot found: {spot.university}")
+                logger.info(f"🆕 New spot found: {spot.university}")
                 await notify_users_about_spot(spot)
     else:
         for spot in available_spots:
@@ -362,6 +401,7 @@ async def check_for_new_spots():
             await notify_users_about_spot(spot)
     
     logger.info(f"Check complete. Found {len(available_spots)} available CENT@CASA spots.")
+
 
 async def run_scraper_scheduler():
     """Run the scraper every 10 minutes"""
@@ -373,18 +413,25 @@ async def run_scraper_scheduler():
             await check_for_new_spots()
         except Exception as e:
             logger.error(f"Scheduler error: {e}")
-        await asyncio.sleep(600)  # 10 minutes
+        await asyncio.sleep(600)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("Starting CEnT-S Alert System...")
+    logger.info("=" * 50)
+    logger.info("🚀 Starting CEnT-S Alert System")
+    logger.info("=" * 50)
     
-    # Start background tasks
+    # Start scraper
     asyncio.create_task(run_scraper_scheduler())
+    logger.info("✓ Scraper scheduler started (10 min interval)")
     
+    # Start Telegram polling
     if TELEGRAM_BOT_TOKEN:
         asyncio.create_task(telegram_polling_loop())
-        logger.info("Telegram polling started")
+        logger.info("✓ Telegram polling started")
+    else:
+        logger.warning("⚠ TELEGRAM_BOT_TOKEN not set - bot disabled")
     
     yield
     
@@ -392,6 +439,8 @@ async def lifespan(app: FastAPI):
     scraper_running = False
     telegram_polling_running = False
     client.close()
+    logger.info("System shutdown complete")
+
 
 app = FastAPI(lifespan=lifespan)
 api_router = APIRouter(prefix="/api")
@@ -553,7 +602,7 @@ async def connect_telegram(request: Request, telegram_data: TelegramConnectReque
         "You will now receive instant notifications when CENT@CASA spots become available.\n\n"
         "Use /status to check bot status anytime."
     )
-    await send_telegram_message(telegram_data.chat_id, welcome_text)
+    await telegram_send_message(telegram_data.chat_id, welcome_text)
     
     updated_user = await db.users.find_one({"user_id": user['user_id']}, {"_id": 0})
     return updated_user
@@ -578,17 +627,22 @@ async def update_alert_settings(request: Request, settings: AlertSettingsRequest
 @api_router.get("/telegram/bot-info")
 async def get_bot_info():
     """Get Telegram bot username for connection link"""
-    if not TELEGRAM_API_URL:
+    if not TELEGRAM_BOT_TOKEN:
         raise HTTPException(status_code=503, detail="Telegram bot not configured")
     
-    result = await telegram_api_call("getMe")
-    
-    if result.get("ok"):
-        bot_data = result.get("result", {})
-        return {
-            "username": bot_data.get("username"),
-            "name": bot_data.get("first_name")
-        }
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as http:
+            response = await http.get(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getMe")
+            data = response.json()
+            
+            if data.get("ok"):
+                bot = data.get("result", {})
+                return {
+                    "username": bot.get("username"),
+                    "name": bot.get("first_name")
+                }
+    except Exception as e:
+        logger.error(f"Failed to get bot info: {e}")
     
     raise HTTPException(status_code=503, detail="Failed to get bot info")
 
