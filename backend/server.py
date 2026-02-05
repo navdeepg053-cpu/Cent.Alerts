@@ -404,7 +404,7 @@ async def check_for_new_spots():
 
 
 async def run_scraper_scheduler():
-    """Run the scraper every 10 minutes"""
+    """Run the scraper every 30 seconds"""
     global scraper_running
     scraper_running = True
     
@@ -413,7 +413,7 @@ async def run_scraper_scheduler():
             await check_for_new_spots()
         except Exception as e:
             logger.error(f"Scheduler error: {e}")
-        await asyncio.sleep(600)
+        await asyncio.sleep(30)
 
 
 @asynccontextmanager
@@ -424,7 +424,7 @@ async def lifespan(app: FastAPI):
     
     # Start scraper
     asyncio.create_task(run_scraper_scheduler())
-    logger.info("✓ Scraper scheduler started (10 min interval)")
+    logger.info("✓ Scraper scheduler started (30 sec interval)")
     
     # Start Telegram polling
     if TELEGRAM_BOT_TOKEN:
