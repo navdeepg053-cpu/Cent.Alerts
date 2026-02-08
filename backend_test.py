@@ -41,7 +41,12 @@ class CentSAPITester:
             if success:
                 data = response.json()
                 scraper_status = data.get('scraper_running', False)
-                details = f"Status: {response.status_code}, Scraper running: {scraper_status}"
+                health_checker_status = data.get('health_checker_running', False)
+                webhook_registered = data.get('webhook', {}).get('registered', False)
+                webhook_url = data.get('webhook', {}).get('url', 'N/A')
+                bot_username = data.get('bot_username', 'N/A')
+                
+                details = f"Status: {response.status_code}, Scraper: {scraper_status}, Health checker: {health_checker_status}, Webhook registered: {webhook_registered}, Bot: @{bot_username}"
             else:
                 details = f"Status: {response.status_code}"
                 
