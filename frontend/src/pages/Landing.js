@@ -2,16 +2,59 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
-import { Bell, Zap, Shield, Clock } from "lucide-react";
+import { Bell, Zap, Shield, Clock, ExternalLink, Copy, Check } from "lucide-react";
+import { toast } from "sonner";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
+// Detect in-app browsers (Telegram, Instagram, Facebook, etc.)
+const isInAppBrowser = () => {
+  const ua = navigator.userAgent || navigator.vendor || window.opera;
+  
+  // Check for common in-app browser indicators
+  const inAppIndicators = [
+    'FBAN',      // Facebook
+    'FBAV',      // Facebook
+    'Instagram', // Instagram
+    'Twitter',   // Twitter
+    'TelegramBot', // Telegram
+    'Telegram',  // Telegram
+    'WebView',   // Generic WebView
+    'wv',        // Android WebView
+  ];
+  
+  // Check if any indicator is present
+  for (const indicator of inAppIndicators) {
+    if (ua.includes(indicator)) {
+      return true;
+    }
+  }
+  
+  // Additional check for Telegram on iOS/Android
+  if (ua.includes('Mobile') && (ua.includes('Safari') === false || ua.includes('CriOS') === false)) {
+    // Could be Telegram's browser which doesn't identify itself clearly
+    // Check for missing standard browser features
+    if (window.navigator.standalone !== undefined) {
+      return false; // iOS Safari
+    }
+  }
+  
+  return false;
+};
+
 export default function Landing() {
   const navigate = useNavigate();
   const [isChecking, setIsChecking] = useState(true);
+  const [showInAppWarning, setShowInAppWarning] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
+    // Check if in-app browser
+    if (isInAppBrowser()) {
+      setShowInAppWarning(true);
+    }
+    
     // Check if already authenticated
     const checkExistingAuth = async () => {
       try {
@@ -35,10 +78,83 @@ export default function Landing() {
     window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
   };
 
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(window.location.href);
+    setCopied(true);
+    toast.success("Link copied! Paste in your browser.");
+    setTimeout(() => setCopied(false), 3000);
+  };
+
+  const handleOpenInBrowser = () => {
+    // Try to open in external browser
+    const url = window.location.href;
+    
+    // For Android
+    if (navigator.userAgent.includes('Android')) {
+      window.open(`intent://${url.replace(/^https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`, '_blank');
+    } else {
+      // For iOS and others, just copy the link
+      handleCopyLink();
+    }
+  };
+
   if (isChecking) {
     return (
       <div className="min-h-screen bg-[#050505] flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-[#00FF94] border-t-transparent rounded-full spinner" />
+      </div>
+    );
+  }
+
+  // Show warning if in Telegram or other in-app browser
+  if (showInAppWarning) {
+    return (
+      <div className="min-h-screen bg-[#050505] flex items-center justify-center px-4">
+        <div className="max-w-md w-full bg-[#0A0A0A] border border-[#27272A] p-8 text-center">
+          <div className="w-16 h-16 bg-yellow-500/10 border border-yellow-500/30 rounded-full flex items-center justify-center mx-auto mb-6">
+            <ExternalLink className="w-8 h-8 text-yellow-500" />
+          </div>
+          
+          <h1 className="font-display text-2xl font-bold mb-4">
+            OPEN IN BROWSER
+          </h1>
+          
+          <p className="text-gray-400 mb-6">
+            Google sign-in doesn't work in Telegram's browser. 
+            Please open this page in <b className="text-white">Chrome</b>, <b className="text-white">Safari</b>, or your default browser.
+          </p>
+
+          <div className="space-y-3">
+            <Button
+              onClick={handleCopyLink}
+              className="w-full bg-[#00FF94] text-black hover:bg-[#00CC76] font-bold rounded-none uppercase tracking-wider py-6"
+              data-testid="copy-link-btn"
+            >
+              {copied ? (
+                <>
+                  <Check className="w-5 h-5 mr-2" />
+                  LINK COPIED!
+                </>
+              ) : (
+                <>
+                  <Copy className="w-5 h-5 mr-2" />
+                  COPY LINK
+                </>
+              )}
+            </Button>
+            
+            <p className="text-gray-500 text-sm">
+              Then paste in Chrome/Safari to sign up
+            </p>
+
+            <button
+              onClick={() => setShowInAppWarning(false)}
+              className="text-gray-500 text-sm hover:text-white mt-4"
+            >
+              Continue anyway (may not work)
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
