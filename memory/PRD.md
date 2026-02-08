@@ -1,82 +1,240 @@
-# CEnT-S Alert - Product Requirements Document
+# CEnT-S Alert System v2 - Setup & Deployment Guide
 
-## Original Problem Statement
-Build a website that alerts whenever there's an opening for the CEnT-S Italian university entrance test available. Monitor https://testcisia.it/calendario.php?tolc=cents&lingua=inglese and only track CENT@CASA (home-based) spots. Users sign up and receive real-time alerts when spots become available.
+## 🚀 SYSTEM OVERVIEW
 
-## User Personas
-1. **International Students** - Students from various countries applying to Italian universities who need CENT@CASA test spots
-2. **Italian Students** - Local students preferring home-based testing options
+A **bulletproof** monitoring system for CISIA CENT@CASA test spots with:
+- **Webhook-based Telegram bot** (instant responses, no polling)
+- **Auto-healing health checker** (repairs webhook every 30s if needed)
+- **30-second scraper** (checks CISIA continuously)
+- **Google OAuth** authentication
+- **MongoDB** for data persistence
 
-## Core Requirements
-- Monitor CISIA calendar page every 10 minutes
-- Filter only CENT@CASA sessions (not CENT@UNI)
-- Detect newly available spots
-- Send instant Telegram notifications to subscribed users
-- Google OAuth authentication
-- Notification history tracking
+---
 
-## What's Been Implemented (Feb 2, 2026)
+## 📋 ARCHITECTURE
 
-### Backend (FastAPI + MongoDB)
-- ✅ Web scraper for CISIA calendar page (Beautiful Soup + lxml)
-- ✅ Background scheduler running every 10 minutes
-- ✅ Google OAuth via Emergent Auth
-- ✅ Telegram Bot integration for instant alerts
-- ✅ User management (create, update, alert settings)
-- ✅ Notification logging and history
-- ✅ Session management with secure cookies
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    CEnT-S Alert System v2                   │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐     │
+│  │   SCRAPER   │    │  TELEGRAM   │    │   HEALTH    │     │
+│  │  (30s loop) │    │  WEBHOOK    │    │  CHECKER    │     │
+│  │             │    │  (instant)  │    │  (30s loop) │     │
+│  └──────┬──────┘    └──────┬──────┘    └──────┬──────┘     │
+│         │                  │                  │             │
+│         └──────────────────┼──────────────────┘             │
+│                            │                                │
+│                    ┌───────▼───────┐                        │
+│                    │   FastAPI     │                        │
+│                    │   Backend     │                        │
+│                    └───────┬───────┘                        │
+│                            │                                │
+│         ┌──────────────────┼──────────────────┐             │
+│         │                  │                  │             │
+│  ┌──────▼──────┐    ┌──────▼──────┐    ┌──────▼──────┐     │
+│  │   MongoDB   │    │  Telegram   │    │   React     │     │
+│  │   Database  │    │   API       │    │  Frontend   │     │
+│  └─────────────┘    └─────────────┘    └─────────────┘     │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
 
-### Frontend (React + Tailwind)
-- ✅ Landing page with value proposition
-- ✅ Google OAuth login flow
-- ✅ Dashboard showing all CENT@CASA sessions
-- ✅ Real-time status display (available vs full)
-- ✅ Telegram connection setup flow
-- ✅ Alert toggle settings
-- ✅ Notification history page
-- ✅ Dark neon theme (Electric aesthetic)
+---
 
-### Integrations
-- ✅ Telegram Bot (@centstest_alert_bot) - FREE instant notifications
-- ✅ Emergent Google OAuth
+## 🔧 CONFIGURATION
 
-## Database Schema
-- `users`: user_id, email, name, picture, telegram_chat_id, alert_telegram
-- `user_sessions`: session_token, user_id, expires_at
-- `availability_snapshots`: timestamp, spots[], available_count
-- `notifications`: user_id, type, message, spot_info, sent_at, status
+### Environment Variables (backend/.env)
 
-## API Endpoints
-- `GET /api/health` - Health check
-- `POST /api/auth/session` - OAuth exchange
-- `GET /api/auth/me` - Get current user
-- `POST /api/auth/logout` - Logout
-- `POST /api/users/telegram` - Connect Telegram
-- `PUT /api/users/alerts` - Update alert settings
-- `GET /api/availability` - Current availability
-- `POST /api/availability/refresh` - Manual refresh
-- `GET /api/notifications/history` - User's notification history
-- `GET /api/telegram/bot-info` - Get bot username
+```env
+MONGO_URL="mongodb://localhost:27017"
+DB_NAME="test_database"
+CORS_ORIGINS="*"
+TELEGRAM_BOT_TOKEN="your_bot_token_here"
+WEBHOOK_SECRET="random_secret_string"
+REACT_APP_BACKEND_URL="https://your-domain.com"
+```
 
-## Prioritized Backlog
+### Telegram Bot Setup
 
-### P0 (Done)
-- [x] Core scraping functionality
-- [x] User authentication
-- [x] Telegram notifications
-- [x] Dashboard UI
+1. Message @BotFather on Telegram
+2. Send `/newbot`
+3. Name: `CEnT-S Alert` (or similar)
+4. Username: Must end with `bot`, e.g., `cents_alert_bot`
+5. Copy the token and add to `.env`
 
-### P1 (Future)
-- [ ] Email notifications (add Resend when needed)
-- [ ] Multiple alert channels per user
-- [ ] Specific university/location filters
+---
 
-### P2 (Future)
-- [ ] Browser push notifications
-- [ ] Mobile app
-- [ ] Alert scheduling (quiet hours)
+## 📡 WEBHOOK SYSTEM
 
-## Next Tasks
-1. Test real Telegram notifications when spots actually open
-2. Consider adding email as backup channel
-3. Add user preferences for specific universities
+### How It Works
+
+1. **On Startup**: System registers webhook with Telegram
+2. **When User Messages**: Telegram POSTs to our webhook endpoint
+3. **Processing**: We handle message and respond instantly
+4. **Health Check**: Every 30s, verifies webhook is working
+5. **Auto-Repair**: If issues detected, re-registers webhook
+
+### Webhook Endpoint
+
+```
+POST /api/telegram/webhook/{WEBHOOK_SECRET}
+```
+
+The secret path prevents unauthorized access.
+
+---
+
+## 🏥 HEALTH MONITORING
+
+### What It Checks (every 30 seconds)
+
+- ✅ Webhook URL is correct
+- ✅ No error messages from Telegram
+- ✅ Pending updates count is reasonable
+- ✅ Webhook task is alive
+
+### Auto-Recovery Actions
+
+1. Delete old webhook
+2. Wait 1 second
+3. Set new webhook
+4. Verify with `getWebhookInfo`
+5. Log recovery attempt
+
+### Health Endpoint
+
+```bash
+GET /api/health
+```
+
+Returns:
+```json
+{
+  "status": "healthy",
+  "version": "2.0-webhook",
+  "uptime_seconds": 3600,
+  "webhook": {
+    "registered": true,
+    "url": "https://...",
+    "last_check_ago": 15.2
+  },
+  "health_checks": {
+    "passed": 120,
+    "failed": 0,
+    "auto_recoveries": 1
+  }
+}
+```
+
+---
+
+## 🤖 BOT COMMANDS
+
+| Command | Description |
+|---------|-------------|
+| `/start` | Get your Chat ID (for connecting) |
+| `/status` | Check bot status & uptime |
+| `/id` | Show your Chat ID |
+| `/help` | List all commands |
+| `/stop` | Disable alerts |
+
+---
+
+## 🔍 SCRAPER
+
+Checks CISIA every **30 seconds** for:
+- CENT@CASA spots only (filters out CENT@UNI)
+- Detects newly available spots
+- Sends Telegram alerts to subscribed users
+
+---
+
+## 🚨 EMERGENCY ENDPOINTS
+
+### Force Webhook Re-registration
+
+```bash
+POST /api/telegram/force-reregister
+```
+
+Use if bot stops responding despite health checks passing.
+
+---
+
+## 📊 DATABASE COLLECTIONS
+
+| Collection | Purpose |
+|------------|---------|
+| `users` | User accounts, telegram_chat_id, alert preferences |
+| `user_sessions` | Authentication sessions |
+| `availability_snapshots` | Historical scraper data |
+| `notifications` | Alert history |
+
+---
+
+## 🧪 TESTING
+
+### Verify Webhook
+
+```bash
+# Check Telegram's view of webhook
+curl "https://api.telegram.org/bot{TOKEN}/getWebhookInfo"
+```
+
+### Verify Bot
+
+1. Open Telegram
+2. Search `@CISIA_MONITOR_BOT`
+3. Send `/start`
+4. Should receive Chat ID instantly
+
+### Verify Health
+
+```bash
+curl https://your-domain.com/api/health
+```
+
+---
+
+## 🐛 TROUBLESHOOTING
+
+### Bot Not Responding
+
+1. Check `/api/health` - is webhook registered?
+2. Check Telegram webhook info - any errors?
+3. Call `/api/telegram/force-reregister`
+4. Check backend logs for errors
+
+### Webhook 404 Errors
+
+- Server may have restarted
+- Health checker will auto-repair within 30s
+- Or manually call force-reregister
+
+### Rate Limiting (429)
+
+- Bot handles automatically with retry_after
+- Reduce message frequency if persistent
+
+---
+
+## ✅ SUCCESS CRITERIA
+
+The system is healthy when:
+- `health_checks.passed` increases every 30s
+- `health_checks.failed` stays at 0
+- `auto_recoveries` is low (< 10/hour)
+- `/start` responds within 2 seconds
+- Scraper runs every 30 seconds
+
+---
+
+## 📝 CURRENT STATUS
+
+- **Bot**: @CISIA_MONITOR_BOT
+- **Version**: 2.0-webhook
+- **Scraper Interval**: 30 seconds
+- **Health Check Interval**: 30 seconds
+- **CENT@CASA Sessions**: 23 (all full currently)
