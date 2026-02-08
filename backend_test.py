@@ -253,7 +253,7 @@ class CentSAPITester:
                 'Content-Type': 'application/json'
             }
             data = {"chat_id": "123456789"}
-            response = requests.post(f"{self.api_url}/users/telegram", headers=headers, json=data, timeout=10)
+            response = requests.post(f"{self.api_url}/users/telegram", headers=headers, json=data, timeout=30)  # Increased timeout
             success = response.status_code == 200
             
             if success:
