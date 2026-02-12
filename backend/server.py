@@ -699,8 +699,8 @@ if FRONTEND_BUILD_DIR.exists():
     @app.get("/{full_path:path}")
     async def serve_frontend(full_path: str):
         """Serve the React app for all non-API routes."""
-        # If the path starts with 'api', it should be handled by API routes
-        if full_path.startswith("api"):
+        # If the path starts with 'api/', it should be handled by API routes
+        if full_path.startswith("api/") or full_path == "api":
             raise HTTPException(404, "Not found")
         
         # Check if the requested file exists

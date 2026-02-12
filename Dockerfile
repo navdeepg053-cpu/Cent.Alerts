@@ -44,9 +44,9 @@ COPY --from=frontend-build /app/frontend/build ./frontend/build
 # Expose port (Render will set PORT env variable)
 EXPOSE 8000
 
-# Health check
+# Health check (uses PORT env var if set, otherwise defaults to 8000)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:${PORT:-8000}/api/health || exit 1
+    CMD sh -c 'curl -f http://localhost:${PORT:-8000}/api/health || exit 1'
 
 # Run the application with uvicorn
 CMD ["sh", "-c", "uvicorn backend.server:app --host 0.0.0.0 --port ${PORT:-8000}"]

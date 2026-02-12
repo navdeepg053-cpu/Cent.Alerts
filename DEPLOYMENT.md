@@ -45,6 +45,7 @@ You'll need to set the following environment variables in Render.com:
 - `DB_NAME`: Your MongoDB database name
 - `TELEGRAM_BOT_TOKEN`: Your Telegram bot token from BotFather
 - `REACT_APP_BACKEND_URL`: Your app's public URL (e.g., `https://your-app.onrender.com`)
+  - **Note**: This is used by the backend to register the Telegram webhook. The frontend uses relative URLs since it's served from the same origin.
 
 #### Optional Variables:
 - `PORT`: The port to run on (Render sets this automatically, default: 8000)

@@ -60,5 +60,4 @@ memory/
 standalone_bot/
 .emergent/
 design_guidelines.json
-yarn.lock
 build-frontend.sh

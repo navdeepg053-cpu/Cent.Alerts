@@ -12,7 +12,7 @@ services:
       - key: TELEGRAM_BOT_TOKEN
         sync: false  # Set this manually in Render dashboard
       - key: REACT_APP_BACKEND_URL
-        sync: false  # Will be set to your Render app URL (e.g., https://your-app.onrender.com)
+        sync: false  # IMPORTANT: Set to your Render app URL (e.g., https://your-app.onrender.com) for Telegram webhooks to work
       - key: CORS_ORIGINS
         value: "*"  # Change to specific domains in production
       - key: PORT
