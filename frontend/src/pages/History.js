@@ -4,7 +4,8 @@ import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Bell, Mail, Smartphone, MessageCircle, Clock } from "lucide-react";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+// Use the backend URL from environment, or empty string for same-origin deployment
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
 const API = `${BACKEND_URL}/api`;
 
 export default function History({ user }) {

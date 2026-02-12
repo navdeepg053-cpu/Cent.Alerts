@@ -8,6 +8,8 @@ CEnT-S Alert System v3 - DUAL MODE (Webhook + Polling Fallback)
 """
 
 from fastapi import FastAPI, APIRouter, HTTPException, Request, Response, BackgroundTasks
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -684,3 +686,33 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ========== STATIC FILES ==========
+# Serve frontend static files in production
+FRONTEND_BUILD_DIR = Path(__file__).parent.parent / "frontend" / "build"
+
+if FRONTEND_BUILD_DIR.exists():
+    # Mount static files (CSS, JS, images, etc.)
+    app.mount("/static", StaticFiles(directory=FRONTEND_BUILD_DIR / "static"), name="static")
+    
+    # Serve index.html for all non-API routes (SPA routing)
+    @app.get("/{full_path:path}")
+    async def serve_frontend(full_path: str):
+        """Serve the React app for all non-API routes."""
+        # If the path starts with 'api', it should be handled by API routes
+        if full_path.startswith("api"):
+            raise HTTPException(404, "Not found")
+        
+        # Check if the requested file exists
+        file_path = FRONTEND_BUILD_DIR / full_path
+        if file_path.is_file():
+            return FileResponse(file_path)
+        
+        # Otherwise, serve index.html (for SPA routing)
+        index_path = FRONTEND_BUILD_DIR / "index.html"
+        if index_path.exists():
+            return FileResponse(index_path)
+        
+        raise HTTPException(404, "Frontend build not found")
+else:
+    logger.warning(f"Frontend build directory not found: {FRONTEND_BUILD_DIR}")
