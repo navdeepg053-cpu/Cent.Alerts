@@ -4,7 +4,7 @@ import json
 from datetime import datetime
 
 class CentSAPITester:
-    def __init__(self, base_url="https://cents-monitor.preview.emergentagent.com"):
+    def __init__(self, base_url="https://example.com/api-placeholder"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.session_token = None
