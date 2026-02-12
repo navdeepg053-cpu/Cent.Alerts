@@ -17,6 +17,25 @@ The application uses a **single-server architecture** where:
 
 ## Deployment Steps
 
+### Option A: Using render.yaml (Recommended)
+
+This repository includes a `render.yaml` file for easy deployment.
+
+1. Go to [Render Dashboard](https://dashboard.render.com/)
+2. Click "New +" → "Blueprint"
+3. Connect your GitHub repository
+4. Render will automatically detect the `render.yaml` file
+5. Configure the required environment variables:
+   - `MONGO_URL`: Your MongoDB connection string
+   - `DB_NAME`: Your MongoDB database name
+   - `TELEGRAM_BOT_TOKEN`: Your Telegram bot token
+   - `REACT_APP_BACKEND_URL`: Your app's public URL (update this after first deployment)
+6. Click "Apply" to deploy
+
+**Note**: After the first deployment, you'll need to update `REACT_APP_BACKEND_URL` with your actual Render URL (e.g., `https://your-app.onrender.com`), then trigger a redeploy.
+
+### Option B: Manual Configuration
+
 ### 1. Prepare Your Environment Variables
 
 You'll need to set the following environment variables in Render.com:
