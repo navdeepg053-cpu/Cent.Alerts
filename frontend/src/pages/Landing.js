@@ -251,7 +251,7 @@ export default function Landing() {
               <Clock className="w-8 h-8 text-[#00FF94] mb-4" />
               <h3 className="font-display text-lg font-semibold mb-2">24/7 MONITORING</h3>
               <p className="text-gray-400 text-sm">
-                We check for new spots every 10 minutes, around the clock.
+                We check for new spots every 30 seconds, around the clock.
               </p>
             </div>
 
@@ -288,7 +288,7 @@ export default function Landing() {
                 </div>
                 <div>
                   <p className="text-gray-500 text-sm uppercase tracking-wider mb-1">Check Interval</p>
-                  <p className="font-display text-2xl font-bold">10 MIN</p>
+                  <p className="font-display text-2xl font-bold">30 SEC</p>
                 </div>
                 <div>
                   <p className="text-gray-500 text-sm uppercase tracking-wider mb-1">Target</p>
