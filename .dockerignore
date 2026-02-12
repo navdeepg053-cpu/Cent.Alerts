@@ -1,0 +1,63 @@
+# Git
+.git
+.gitignore
+.gitconfig
+
+# Documentation
+*.md
+!DEPLOYMENT.md
+auth_testing.md
+test_result.md
+
+# Tests
+tests/
+test_reports/
+backend_test.py
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+venv/
+.venv/
+env/
+
+# Node
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment files (will be set via Render)
+.env
+.env.*
+*.env
+
+# Build artifacts (will be built in Docker)
+frontend/build/
+frontend/.cache/
+
+# Other
+memory/
+standalone_bot/
+.emergent/
+design_guidelines.json
+build-frontend.sh

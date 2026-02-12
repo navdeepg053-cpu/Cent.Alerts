@@ -8,7 +8,8 @@ import TelegramSetup from "@/pages/TelegramSetup";
 import History from "@/pages/History";
 import { Toaster } from "@/components/ui/sonner";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+// Use the backend URL from environment, or empty string for same-origin deployment
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
 const API = `${BACKEND_URL}/api`;
 
 axios.defaults.withCredentials = true;

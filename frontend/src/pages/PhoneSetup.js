@@ -7,7 +7,8 @@ import { toast } from "sonner";
 import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+// Use the backend URL from environment, or empty string for same-origin deployment
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
 const API = `${BACKEND_URL}/api`;
 
 export default function PhoneSetup({ user, setUser }) {

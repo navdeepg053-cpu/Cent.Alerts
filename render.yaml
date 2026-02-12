@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: cents-alerts
+    runtime: docker
+    plan: starter  # Change to 'free' for free tier, or 'starter' for paid tier
+    healthCheckPath: /api/health
+    envVars:
+      - key: MONGO_URL
+        sync: false  # Set this manually in Render dashboard
+      - key: DB_NAME
+        sync: false  # Set this manually in Render dashboard
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false  # Set this manually in Render dashboard
+      - key: REACT_APP_BACKEND_URL
+        sync: false  # IMPORTANT: Set to your Render app URL (e.g., https://your-app.onrender.com) for Telegram webhooks to work
+      - key: CORS_ORIGINS
+        value: "*"  # Change to specific domains in production
+      - key: PORT
+        value: "8000"  # Render will override this, but it's here as default
