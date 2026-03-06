@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Send, ArrowRight, ArrowLeft, ExternalLink, Copy, Check } from "lucide-react";
 import { toast } from "sonner";
 
-// Use the backend URL from environment, or empty string for same-origin deployment
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
 const API = `${BACKEND_URL}/api`;
 
@@ -19,7 +18,6 @@ export default function TelegramSetup({ user, setUser }) {
   const [step, setStep] = useState(1);
 
   useEffect(() => {
-    // Get bot username
     const fetchBotInfo = async () => {
       try {
         const response = await axios.get(`${API}/telegram/bot-info`);
@@ -64,26 +62,37 @@ export default function TelegramSetup({ user, setUser }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] flex items-center justify-center px-4">
-      <div className="w-full max-w-md animate-fadeIn">
-        <div className="bg-[#0A0A0A] border border-[#27272A] p-8">
+    <div className="min-h-screen bg-background flex items-center justify-center px-4 relative overflow-hidden">
+      {/* Background effects */}
+      <div className="orb w-[400px] h-[400px] bg-sky-500/15 top-[10%] right-[-10%]" />
+      <div className="orb orb-slow w-[300px] h-[300px] bg-emerald-500/10 bottom-[10%] left-[-5%]" style={{ animationDelay: '-8s' }} />
+      <div className="fixed inset-0 bg-grid-pattern pointer-events-none opacity-50" />
+
+      <div className="w-full max-w-md animate-fadeIn relative z-10">
+        <div className="glass-card rounded-2xl p-8">
           {/* Header */}
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-12 h-12 bg-[#0088cc]/20 border border-[#0088cc]/30 flex items-center justify-center">
-              <Send className="w-6 h-6 text-[#0088cc]" />
+          <div className="flex items-center gap-4 mb-8">
+            <div className="w-14 h-14 bg-gradient-to-br from-sky-500/20 to-blue-500/10 border border-sky-500/20 rounded-2xl flex items-center justify-center">
+              <Send className="w-7 h-7 text-sky-400" />
             </div>
             <div>
-              <h1 className="font-display text-xl font-bold">CONNECT TELEGRAM</h1>
-              <p className="text-gray-500 text-sm">Get instant alerts for free</p>
+              <h1 className="font-display text-xl font-bold gradient-text">CONNECT TELEGRAM</h1>
+              <p className="text-slate-500 text-sm">Get instant alerts for free</p>
             </div>
+          </div>
+
+          {/* Step indicator */}
+          <div className="flex items-center gap-3 mb-6">
+            <div className={`h-1 flex-1 rounded-full transition-colors duration-300 ${step >= 1 ? 'bg-gradient-to-r from-emerald-400 to-cyan-400' : 'bg-slate-800'}`} />
+            <div className={`h-1 flex-1 rounded-full transition-colors duration-300 ${step >= 2 ? 'bg-gradient-to-r from-cyan-400 to-indigo-400' : 'bg-slate-800'}`} />
           </div>
 
           {/* Steps */}
           {step === 1 && (
-            <div className="space-y-6">
-              <div className="bg-[#050505] border border-[#27272A] p-4">
-                <p className="text-gray-400 text-sm mb-4">
-                  <span className="text-[#00FF94] font-bold">Step 1:</span> Open our Telegram bot
+            <div className="space-y-4">
+              <div className="glass rounded-xl p-4">
+                <p className="text-slate-400 text-sm mb-4">
+                  <span className="text-emerald-400 font-bold">Step 1:</span> Open our Telegram bot
                 </p>
                 
                 {botUsername ? (
@@ -91,48 +100,48 @@ export default function TelegramSetup({ user, setUser }) {
                     href={`https://t.me/${botUsername}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 bg-[#0088cc] text-white font-bold px-6 py-3 uppercase tracking-wider hover:bg-[#006699] w-full"
+                    className="group flex items-center justify-center gap-2 bg-gradient-to-r from-sky-500 to-blue-500 text-white font-bold px-6 py-3 rounded-xl uppercase tracking-wider transition-all duration-300 hover:shadow-[0_0_30px_rgba(14,165,233,0.3)] hover:-translate-y-0.5 w-full"
                     data-testid="open-telegram-btn"
                   >
                     <Send className="w-4 h-4" />
                     Open @{botUsername}
-                    <ExternalLink className="w-4 h-4" />
+                    <ExternalLink className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                   </a>
                 ) : (
-                  <div className="text-center py-3 text-gray-500">Loading bot info...</div>
+                  <div className="text-center py-3 text-slate-500">Loading bot info...</div>
                 )}
               </div>
 
-              <div className="bg-[#050505] border border-[#27272A] p-4">
-                <p className="text-gray-400 text-sm mb-4">
-                  <span className="text-[#00FF94] font-bold">Step 2:</span> Send /start to the bot
+              <div className="glass rounded-xl p-4">
+                <p className="text-slate-400 text-sm mb-4">
+                  <span className="text-cyan-400 font-bold">Step 2:</span> Send /start to the bot
                 </p>
                 
                 <button
                   onClick={handleCopyCommand}
-                  className="flex items-center justify-between w-full bg-[#1A1A1A] border border-[#27272A] px-4 py-3 text-left hover:border-[#00FF94]/50"
+                  className="flex items-center justify-between w-full bg-slate-900/50 border border-slate-700/50 px-4 py-3 rounded-lg text-left transition-all duration-300 hover:border-emerald-500/30 hover:bg-emerald-500/5"
                 >
-                  <code className="font-display text-[#00FF94]">/start</code>
+                  <code className="font-display text-emerald-400">/start</code>
                   {copied ? (
-                    <Check className="w-4 h-4 text-[#00FF94]" />
+                    <Check className="w-4 h-4 text-emerald-400" />
                   ) : (
-                    <Copy className="w-4 h-4 text-gray-400" />
+                    <Copy className="w-4 h-4 text-slate-400" />
                   )}
                 </button>
               </div>
 
-              <div className="bg-[#050505] border border-[#27272A] p-4">
-                <p className="text-gray-400 text-sm mb-2">
-                  <span className="text-[#00FF94] font-bold">Step 3:</span> The bot will reply with your Chat ID
+              <div className="glass rounded-xl p-4">
+                <p className="text-slate-400 text-sm mb-2">
+                  <span className="text-indigo-400 font-bold">Step 3:</span> The bot will reply with your Chat ID
                 </p>
-                <p className="text-gray-500 text-xs">
-                  It looks like: <code className="text-gray-400">123456789</code>
+                <p className="text-slate-500 text-xs">
+                  It looks like: <code className="text-slate-400 bg-slate-800/50 px-2 py-0.5 rounded">123456789</code>
                 </p>
               </div>
 
               <Button
                 onClick={() => setStep(2)}
-                className="w-full bg-[#00FF94] text-black hover:bg-[#00CC76] font-bold rounded-none uppercase tracking-wider py-6"
+                className="w-full bg-gradient-to-r from-emerald-400 to-cyan-400 text-slate-900 hover:from-emerald-300 hover:to-cyan-300 font-bold rounded-xl uppercase tracking-wider py-6 transition-all duration-300 hover:shadow-[0_0_30px_rgba(52,211,153,0.3)]"
                 data-testid="got-chat-id-btn"
               >
                 I HAVE MY CHAT ID
@@ -144,7 +153,7 @@ export default function TelegramSetup({ user, setUser }) {
           {step === 2 && (
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label className="block text-gray-400 text-sm uppercase tracking-wider mb-2">
+                <label className="block text-slate-400 text-sm uppercase tracking-wider mb-2">
                   Enter Your Chat ID
                 </label>
                 <Input
@@ -153,9 +162,9 @@ export default function TelegramSetup({ user, setUser }) {
                   value={chatId}
                   onChange={(e) => setChatId(e.target.value)}
                   placeholder="123456789"
-                  className="bg-[#050505] border-[#27272A] text-white h-12 font-display focus:border-[#00FF94] focus:ring-[#00FF94]"
+                  className="bg-slate-900/50 border-slate-700/50 text-white h-12 font-display rounded-xl focus:border-emerald-400 focus:ring-emerald-400/20"
                 />
-                <p className="text-gray-500 text-xs mt-2">
+                <p className="text-slate-500 text-xs mt-2">
                   The number the bot sent you after /start
                 </p>
               </div>
@@ -165,10 +174,10 @@ export default function TelegramSetup({ user, setUser }) {
                   data-testid="connect-telegram-btn"
                   type="submit"
                   disabled={saving || !chatId}
-                  className="w-full bg-[#00FF94] text-black hover:bg-[#00CC76] font-bold rounded-none uppercase tracking-wider py-6 disabled:opacity-50"
+                  className="w-full bg-gradient-to-r from-emerald-400 to-cyan-400 text-slate-900 hover:from-emerald-300 hover:to-cyan-300 font-bold rounded-xl uppercase tracking-wider py-6 disabled:opacity-50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(52,211,153,0.3)]"
                 >
                   {saving ? (
-                    <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full spinner" />
+                    <div className="w-5 h-5 border-2 border-slate-900 border-t-transparent rounded-full spinner" />
                   ) : (
                     <>
                       CONNECT TELEGRAM
@@ -181,7 +190,7 @@ export default function TelegramSetup({ user, setUser }) {
                   type="button"
                   onClick={() => setStep(1)}
                   variant="ghost"
-                  className="w-full text-gray-400 hover:text-white font-medium rounded-none uppercase tracking-wider py-6"
+                  className="w-full text-slate-400 hover:text-white hover:bg-slate-800/50 font-medium rounded-xl uppercase tracking-wider py-6"
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   BACK TO INSTRUCTIONS
@@ -191,10 +200,10 @@ export default function TelegramSetup({ user, setUser }) {
           )}
 
           {/* Skip */}
-          <div className="mt-6 pt-6 border-t border-[#27272A]">
+          <div className="mt-6 pt-6 border-t border-slate-800/50">
             <button
               onClick={handleSkip}
-              className="text-gray-500 text-sm hover:text-gray-400 w-full text-center"
+              className="text-slate-500 text-sm hover:text-slate-300 transition-colors w-full text-center"
               data-testid="skip-telegram-btn"
             >
               Skip for now
@@ -204,7 +213,7 @@ export default function TelegramSetup({ user, setUser }) {
 
         {/* User info */}
         <div className="mt-4 text-center">
-          <p className="text-gray-500 text-sm">
+          <p className="text-slate-500 text-sm">
             Signed in as <span className="text-white">{user?.email}</span>
           </p>
         </div>

@@ -12,31 +12,32 @@ import {
   Clock,
   History,
   User,
-  Send
+  Send,
+  ArrowUpRight,
+  Activity
 } from "lucide-react";
 import { toast } from "sonner";
 
-// Use the backend URL from environment, or empty string for same-origin deployment
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
 const API = `${BACKEND_URL}/api`;
 
 function AvailableSpotCard({ spot }) {
   return (
-    <div className="bg-[#050505] border border-[#00FF94]/30 p-4">
+    <div className="glass-card rounded-xl p-4 border-emerald-500/20 hover:border-emerald-500/30">
       <div className="flex items-start justify-between">
         <div>
           <p className="font-display font-semibold text-white">
             {spot.university}
           </p>
-          <p className="text-gray-400 text-sm">
+          <p className="text-slate-400 text-sm">
             {spot.city}, {spot.region}
           </p>
         </div>
         <div className="text-right">
-          <p className="font-display text-[#00FF94] font-bold">
+          <p className="font-display font-bold gradient-text-warm">
             {spot.spots} spots
           </p>
-          <p className="text-gray-500 text-xs">
+          <p className="text-slate-500 text-xs">
             Deadline: {spot.registration_deadline}
           </p>
         </div>
@@ -49,7 +50,7 @@ function SpotTableRow({ spot }) {
   const isAvailable = spot.status && spot.status.toUpperCase().includes("DISPONIBILI");
   
   return (
-    <tr className="border-b border-[#1A1A1A] hover:bg-[#0F0F0F]">
+    <tr className="border-b border-slate-800/30 hover:bg-emerald-500/[0.02] transition-colors">
       <td className="p-4">
         <span
           className={`inline-flex items-center gap-2 px-3 py-1 text-xs font-display uppercase tracking-wider ${
@@ -58,24 +59,24 @@ function SpotTableRow({ spot }) {
         >
           <span
             className={`w-2 h-2 rounded-full ${
-              isAvailable ? "bg-[#00FF94]" : "bg-[#FF3B30]"
+              isAvailable ? "bg-emerald-400" : "bg-red-400"
             }`}
           />
           {isAvailable ? "AVAILABLE" : "FULL"}
         </span>
       </td>
       <td className="p-4 font-display text-sm">{spot.university}</td>
-      <td className="p-4 text-gray-400 text-sm">
+      <td className="p-4 text-slate-400 text-sm">
         {spot.city}, {spot.region}
       </td>
       <td className="p-4 font-display text-sm">{spot.test_date}</td>
-      <td className="p-4 text-gray-400 text-sm">
+      <td className="p-4 text-slate-400 text-sm">
         {spot.registration_deadline}
       </td>
       <td className="p-4">
         <span
           className={`font-display font-bold ${
-            isAvailable ? "text-[#00FF94]" : "text-gray-500"
+            isAvailable ? "text-emerald-400" : "text-slate-500"
           }`}
         >
           {spot.spots}
@@ -161,21 +162,34 @@ export default function Dashboard({ user, setUser }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-[#00FF94] border-t-transparent rounded-full spinner" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="relative">
+          <div className="w-10 h-10 border-2 border-emerald-400 border-t-transparent rounded-full spinner" />
+          <div className="absolute inset-0 w-10 h-10 border-2 border-cyan-400/30 border-b-transparent rounded-full spinner" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }} />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#050505]">
+    <div className="min-h-screen bg-background relative">
+      {/* Subtle background effects */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="orb w-[400px] h-[400px] bg-emerald-500/10 top-[-5%] right-[10%]" />
+        <div className="orb orb-slow w-[300px] h-[300px] bg-cyan-500/8 bottom-[10%] left-[-5%]" style={{ animationDelay: '-7s' }} />
+      </div>
+      <div className="fixed inset-0 bg-grid-pattern pointer-events-none opacity-50" />
+
       {/* Header */}
-      <nav className="border-b border-[#27272A]">
+      <nav className="relative z-20 border-b border-slate-800/50 glass">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-3 h-3 bg-[#00FF94] pulse-indicator" />
-              <span className="font-display text-xl font-bold tracking-tight">
+              <div className="relative">
+                <div className="w-3 h-3 bg-emerald-400 rounded-full pulse-indicator" />
+                <div className="absolute inset-0 w-3 h-3 bg-emerald-400 rounded-full animate-ping opacity-20" />
+              </div>
+              <span className="font-display text-xl font-bold tracking-tight gradient-text-warm">
                 CEnT-S ALERT
               </span>
             </div>
@@ -183,15 +197,17 @@ export default function Dashboard({ user, setUser }) {
             <div className="flex items-center gap-4">
               <Link
                 to="/history"
-                className="flex items-center gap-2 text-gray-400 hover:text-white"
+                className="flex items-center gap-2 text-slate-400 hover:text-emerald-400 transition-colors rounded-lg px-3 py-2 hover:bg-emerald-500/5"
                 data-testid="history-link"
               >
                 <History className="w-4 h-4" />
                 <span className="hidden sm:inline text-sm">History</span>
               </Link>
 
-              <div className="flex items-center gap-2 text-gray-400">
-                <User className="w-4 h-4" />
+              <div className="flex items-center gap-2 text-slate-400">
+                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 flex items-center justify-center">
+                  <User className="w-3.5 h-3.5" />
+                </div>
                 <span className="text-sm hidden sm:inline">{user?.name}</span>
               </div>
 
@@ -200,7 +216,7 @@ export default function Dashboard({ user, setUser }) {
                 variant="ghost"
                 size="sm"
                 onClick={handleLogout}
-                className="text-gray-400 hover:text-white"
+                className="text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg"
               >
                 <LogOut className="w-4 h-4" />
               </Button>
@@ -209,25 +225,30 @@ export default function Dashboard({ user, setUser }) {
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Status Card */}
           <div
-            className={`lg:col-span-2 bg-[#0A0A0A] border p-8 animate-fadeIn ${
+            className={`lg:col-span-2 glass-card rounded-xl p-8 animate-fadeIn ${
               hasAvailableSpots
-                ? "border-[#00FF94]/50 neon-glow"
-                : "border-[#27272A]"
+                ? "border-emerald-500/30 neon-glow"
+                : ""
             }`}
           >
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
-                <div
-                  className={`w-4 h-4 rounded-full ${
-                    hasAvailableSpots
-                      ? "bg-[#00FF94] pulse-indicator shadow-[0_0_10px_#00FF94]"
-                      : "bg-[#FF3B30]"
-                  }`}
-                />
+                <div className="relative">
+                  <div
+                    className={`w-4 h-4 rounded-full ${
+                      hasAvailableSpots
+                        ? "bg-emerald-400 pulse-indicator"
+                        : "bg-red-400"
+                    }`}
+                  />
+                  {hasAvailableSpots && (
+                    <div className="absolute inset-0 w-4 h-4 bg-emerald-400 rounded-full animate-ping opacity-20" />
+                  )}
+                </div>
                 <h2 className="font-display text-xl font-bold uppercase tracking-wider">
                   CENT@CASA STATUS
                 </h2>
@@ -239,7 +260,7 @@ export default function Dashboard({ user, setUser }) {
                 size="sm"
                 onClick={handleRefresh}
                 disabled={refreshing}
-                className="text-gray-400 hover:text-white"
+                className="text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/5 rounded-lg transition-colors"
               >
                 <RefreshCw className={`w-4 h-4 ${refreshing ? "spinner" : ""}`} />
               </Button>
@@ -248,10 +269,10 @@ export default function Dashboard({ user, setUser }) {
             {hasAvailableSpots ? (
               <div>
                 <div className="mb-6">
-                  <span className="font-display text-5xl font-bold text-[#00FF94] neon-text">
+                  <span className="font-display text-5xl font-bold gradient-text neon-text">
                     {availableSpots.length}
                   </span>
-                  <span className="text-gray-400 ml-2 text-lg">
+                  <span className="text-slate-400 ml-3 text-lg">
                     SPOT{availableSpots.length !== 1 ? "S" : ""} AVAILABLE
                   </span>
                 </div>
@@ -266,26 +287,29 @@ export default function Dashboard({ user, setUser }) {
                   href="https://testcisia.it/studenti_tolc/login_sso.php"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-6 inline-flex items-center gap-2 bg-[#00FF94] text-black font-bold px-6 py-3 uppercase tracking-wider hover:bg-[#00CC76]"
+                  className="group mt-6 inline-flex items-center gap-2 bg-gradient-to-r from-emerald-400 to-cyan-400 text-slate-900 font-bold px-6 py-3 rounded-xl uppercase tracking-wider transition-all duration-300 hover:shadow-[0_0_30px_rgba(52,211,153,0.3)] hover:-translate-y-0.5"
                   data-testid="book-now-btn"
                 >
                   BOOK NOW
-                  <ExternalLink className="w-4 h-4" />
+                  <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                 </a>
               </div>
             ) : (
               <div>
-                <p className="font-display text-4xl font-bold text-[#FF3B30] mb-2">
-                  NO SPOTS AVAILABLE
-                </p>
-                <p className="text-gray-400">
+                <div className="flex items-center gap-3 mb-3">
+                  <Activity className="w-6 h-6 text-red-400" />
+                  <p className="font-display text-3xl sm:text-4xl font-bold text-red-400">
+                    NO SPOTS AVAILABLE
+                  </p>
+                </div>
+                <p className="text-slate-400 leading-relaxed">
                   All {availability?.total_cent_casa || 0} CENT@CASA sessions are currently full.
                   We will notify you when spots open.
                 </p>
               </div>
             )}
 
-            <div className="mt-6 pt-6 border-t border-[#27272A] flex items-center gap-2 text-gray-500 text-sm">
+            <div className="mt-6 pt-6 border-t border-slate-800/50 flex items-center gap-2 text-slate-500 text-sm">
               <Clock className="w-4 h-4" />
               <span>
                 Last checked:{" "}
@@ -297,23 +321,26 @@ export default function Dashboard({ user, setUser }) {
           </div>
 
           {/* Alert Settings Card */}
-          <div className="bg-[#0A0A0A] border border-[#27272A] p-8 animate-fadeIn delay-100">
+          <div className="glass-card rounded-xl p-8 animate-fadeIn delay-100">
             <div className="flex items-center gap-3 mb-6">
-              <Bell className="w-5 h-5 text-[#00FF94]" />
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500/20 to-cyan-500/10 flex items-center justify-center">
+                <Bell className="w-5 h-5 text-emerald-400" />
+              </div>
               <h2 className="font-display text-lg font-bold uppercase tracking-wider">
                 TELEGRAM ALERTS
               </h2>
             </div>
 
             <div className="space-y-6">
-              {/* Telegram Status */}
               {user?.telegram_chat_id ? (
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Send className="w-4 h-4 text-[#00FF94]" />
+                    <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                      <Send className="w-4 h-4 text-emerald-400" />
+                    </div>
                     <div>
                       <Label className="text-white">Telegram Connected</Label>
-                      <p className="text-gray-500 text-xs">Alerts enabled</p>
+                      <p className="text-slate-500 text-xs">Alerts enabled</p>
                     </div>
                   </div>
                   <Switch
@@ -321,17 +348,17 @@ export default function Dashboard({ user, setUser }) {
                     checked={user?.alert_telegram ?? false}
                     onCheckedChange={handleAlertToggle}
                     disabled={savingAlerts}
-                    className="data-[state=checked]:bg-[#00FF94]"
+                    className="data-[state=checked]:bg-emerald-400"
                   />
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-slate-400 text-sm leading-relaxed">
                     Connect your Telegram to receive instant alerts when CENT@CASA spots open.
                   </p>
                   <Link
                     to="/setup-telegram"
-                    className="flex items-center justify-center gap-2 bg-[#0088cc] text-white font-bold px-6 py-3 uppercase tracking-wider hover:bg-[#006699] w-full"
+                    className="group flex items-center justify-center gap-2 bg-gradient-to-r from-sky-500 to-blue-500 text-white font-bold px-6 py-3 rounded-xl uppercase tracking-wider transition-all duration-300 hover:shadow-[0_0_30px_rgba(14,165,233,0.3)] hover:-translate-y-0.5 w-full"
                     data-testid="connect-telegram-btn"
                   >
                     <Send className="w-4 h-4" />
@@ -341,40 +368,39 @@ export default function Dashboard({ user, setUser }) {
               )}
             </div>
 
-            {/* Info */}
-            <div className="mt-6 pt-6 border-t border-[#27272A]">
-              <p className="text-gray-500 text-xs">
+            <div className="mt-6 pt-6 border-t border-slate-800/50">
+              <p className="text-slate-500 text-xs">
                 Free instant notifications via Telegram. No SMS charges.
               </p>
             </div>
           </div>
 
           {/* All Sessions Table */}
-          <div className="lg:col-span-3 bg-[#0A0A0A] border border-[#27272A] p-8 animate-fadeIn delay-200">
+          <div className="lg:col-span-3 glass-card rounded-xl p-8 animate-fadeIn delay-200">
             <h2 className="font-display text-lg font-bold uppercase tracking-wider mb-6">
               ALL CENT@CASA SESSIONS
             </h2>
 
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto rounded-lg">
               <table className="w-full table-dark">
                 <thead>
-                  <tr className="bg-[#050505]">
-                    <th className="text-left p-4 text-gray-500 font-display text-xs uppercase tracking-wider">
+                  <tr>
+                    <th className="text-left p-4 text-slate-500 font-display text-xs uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="text-left p-4 text-gray-500 font-display text-xs uppercase tracking-wider">
+                    <th className="text-left p-4 text-slate-500 font-display text-xs uppercase tracking-wider">
                       University
                     </th>
-                    <th className="text-left p-4 text-gray-500 font-display text-xs uppercase tracking-wider">
+                    <th className="text-left p-4 text-slate-500 font-display text-xs uppercase tracking-wider">
                       Location
                     </th>
-                    <th className="text-left p-4 text-gray-500 font-display text-xs uppercase tracking-wider">
+                    <th className="text-left p-4 text-slate-500 font-display text-xs uppercase tracking-wider">
                       Test Date
                     </th>
-                    <th className="text-left p-4 text-gray-500 font-display text-xs uppercase tracking-wider">
+                    <th className="text-left p-4 text-slate-500 font-display text-xs uppercase tracking-wider">
                       Deadline
                     </th>
-                    <th className="text-left p-4 text-gray-500 font-display text-xs uppercase tracking-wider">
+                    <th className="text-left p-4 text-slate-500 font-display text-xs uppercase tracking-wider">
                       Spots
                     </th>
                   </tr>
@@ -386,7 +412,7 @@ export default function Dashboard({ user, setUser }) {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={6} className="p-8 text-center text-gray-500">
+                      <td colSpan={6} className="p-8 text-center text-slate-500">
                         No data available
                       </td>
                     </tr>

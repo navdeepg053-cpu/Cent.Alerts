@@ -55,10 +55,13 @@ const AuthCallback = () => {
   }, [navigate, location]);
 
   return (
-    <div className="min-h-screen bg-[#050505] flex items-center justify-center">
+    <div className="min-h-screen bg-background flex items-center justify-center">
       <div className="text-center">
-        <div className="w-8 h-8 border-2 border-[#00FF94] border-t-transparent rounded-full spinner mx-auto mb-4" />
-        <p className="text-gray-400 font-display">Authenticating...</p>
+        <div className="relative mx-auto mb-4 w-10 h-10">
+          <div className="w-10 h-10 border-2 border-emerald-400 border-t-transparent rounded-full spinner" />
+          <div className="absolute inset-0 w-10 h-10 border-2 border-cyan-400/30 border-b-transparent rounded-full spinner" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }} />
+        </div>
+        <p className="text-slate-400 font-display">Authenticating...</p>
       </div>
     </div>
   );
@@ -93,8 +96,11 @@ const ProtectedRoute = ({ children }) => {
 
   if (isAuthenticated === null) {
     return (
-      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-[#00FF94] border-t-transparent rounded-full spinner" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="relative">
+          <div className="w-10 h-10 border-2 border-emerald-400 border-t-transparent rounded-full spinner" />
+          <div className="absolute inset-0 w-10 h-10 border-2 border-cyan-400/30 border-b-transparent rounded-full spinner" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }} />
+        </div>
       </div>
     );
   }
@@ -154,9 +160,12 @@ function App() {
           position="bottom-right"
           toastOptions={{
             style: {
-              background: '#0A0A0A',
-              border: '1px solid #27272A',
-              color: '#ffffff',
+              background: 'rgba(15, 23, 42, 0.8)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              border: '1px solid rgba(148, 163, 184, 0.1)',
+              color: '#f1f5f9',
+              borderRadius: '12px',
             },
           }}
         />

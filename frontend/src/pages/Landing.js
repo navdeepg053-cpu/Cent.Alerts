@@ -2,47 +2,75 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
-import { Bell, Zap, Shield, Clock, ExternalLink, Copy, Check } from "lucide-react";
+import { Bell, Zap, Shield, Clock, ExternalLink, Copy, Check, Sparkles, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 
-// Use the backend URL from environment, or empty string for same-origin deployment
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
 const API = `${BACKEND_URL}/api`;
 
-// Detect in-app browsers (Telegram, Instagram, Facebook, etc.)
 const isInAppBrowser = () => {
   const ua = navigator.userAgent || navigator.vendor || window.opera;
   
-  // Check for common in-app browser indicators
   const inAppIndicators = [
-    'FBAN',      // Facebook
-    'FBAV',      // Facebook
-    'Instagram', // Instagram
-    'Twitter',   // Twitter
-    'TelegramBot', // Telegram
-    'Telegram',  // Telegram
-    'WebView',   // Generic WebView
-    'wv',        // Android WebView
+    'FBAN',
+    'FBAV',
+    'Instagram',
+    'Twitter',
+    'TelegramBot',
+    'Telegram',
+    'WebView',
+    'wv',
   ];
   
-  // Check if any indicator is present
   for (const indicator of inAppIndicators) {
     if (ua.includes(indicator)) {
       return true;
     }
   }
   
-  // Additional check for Telegram on iOS/Android
   if (ua.includes('Mobile') && (ua.includes('Safari') === false || ua.includes('CriOS') === false)) {
-    // Could be Telegram's browser which doesn't identify itself clearly
-    // Check for missing standard browser features
     if (window.navigator.standalone !== undefined) {
-      return false; // iOS Safari
+      return false;
     }
   }
   
   return false;
 };
+
+const featureCards = [
+  {
+    icon: Bell,
+    title: "TELEGRAM ALERTS",
+    description: "Free instant Telegram notifications the second a spot opens.",
+    gradient: "from-emerald-500/20 to-cyan-500/10",
+    iconColor: "text-emerald-400",
+    borderHover: "hover:border-emerald-500/30",
+  },
+  {
+    icon: Clock,
+    title: "24/7 MONITORING",
+    description: "We check for new spots every 30 seconds, around the clock.",
+    gradient: "from-cyan-500/20 to-blue-500/10",
+    iconColor: "text-cyan-400",
+    borderHover: "hover:border-cyan-500/30",
+  },
+  {
+    icon: Zap,
+    title: "CENT@CASA ONLY",
+    description: "Focused on home-based tests. No noise from CENT@UNI.",
+    gradient: "from-indigo-500/20 to-purple-500/10",
+    iconColor: "text-indigo-400",
+    borderHover: "hover:border-indigo-500/30",
+  },
+  {
+    icon: Shield,
+    title: "GLOBAL SUPPORT",
+    description: "International phone numbers supported for all countries.",
+    gradient: "from-purple-500/20 to-pink-500/10",
+    iconColor: "text-purple-400",
+    borderHover: "hover:border-purple-500/30",
+  },
+];
 
 export default function Landing() {
   const navigate = useNavigate();
@@ -51,12 +79,10 @@ export default function Landing() {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    // Check if in-app browser
     if (isInAppBrowser()) {
       setShowInAppWarning(true);
     }
     
-    // Check if already authenticated
     const checkExistingAuth = async () => {
       try {
         const response = await axios.get(`${API}/auth/me`);
@@ -87,40 +113,39 @@ export default function Landing() {
   };
 
   const handleOpenInBrowser = () => {
-    // Try to open in external browser
     const url = window.location.href;
     
-    // For Android
     if (navigator.userAgent.includes('Android')) {
       window.open(`intent://${url.replace(/^https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`, '_blank');
     } else {
-      // For iOS and others, just copy the link
       handleCopyLink();
     }
   };
 
   if (isChecking) {
     return (
-      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-[#00FF94] border-t-transparent rounded-full spinner" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="relative">
+          <div className="w-10 h-10 border-2 border-emerald-400 border-t-transparent rounded-full spinner" />
+          <div className="absolute inset-0 w-10 h-10 border-2 border-cyan-400/30 border-b-transparent rounded-full spinner" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }} />
+        </div>
       </div>
     );
   }
 
-  // Show warning if in Telegram or other in-app browser
   if (showInAppWarning) {
     return (
-      <div className="min-h-screen bg-[#050505] flex items-center justify-center px-4">
-        <div className="max-w-md w-full bg-[#0A0A0A] border border-[#27272A] p-8 text-center">
-          <div className="w-16 h-16 bg-yellow-500/10 border border-yellow-500/30 rounded-full flex items-center justify-center mx-auto mb-6">
-            <ExternalLink className="w-8 h-8 text-yellow-500" />
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <div className="max-w-md w-full glass-card rounded-2xl p-8 text-center animate-scaleIn">
+          <div className="w-16 h-16 bg-gradient-to-br from-amber-500/20 to-orange-500/10 border border-amber-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <ExternalLink className="w-8 h-8 text-amber-400" />
           </div>
           
-          <h1 className="font-display text-2xl font-bold mb-4">
+          <h1 className="font-display text-2xl font-bold mb-4 gradient-text">
             OPEN IN BROWSER
           </h1>
           
-          <p className="text-gray-400 mb-6">
+          <p className="text-slate-400 mb-6 leading-relaxed">
             Google sign-in doesn't work in Telegram's browser. 
             Please open this page in <b className="text-white">Chrome</b>, <b className="text-white">Safari</b>, or your default browser.
           </p>
@@ -128,7 +153,7 @@ export default function Landing() {
           <div className="space-y-3">
             <Button
               onClick={handleCopyLink}
-              className="w-full bg-[#00FF94] text-black hover:bg-[#00CC76] font-bold rounded-none uppercase tracking-wider py-6"
+              className="w-full bg-gradient-to-r from-emerald-400 to-cyan-400 text-slate-900 hover:from-emerald-300 hover:to-cyan-300 font-bold rounded-xl uppercase tracking-wider py-6 transition-all duration-300 hover:shadow-[0_0_30px_rgba(52,211,153,0.3)]"
               data-testid="copy-link-btn"
             >
               {copied ? (
@@ -144,13 +169,13 @@ export default function Landing() {
               )}
             </Button>
             
-            <p className="text-gray-500 text-sm">
+            <p className="text-slate-500 text-sm">
               Then paste in Chrome/Safari to sign up
             </p>
 
             <button
               onClick={() => setShowInAppWarning(false)}
-              className="text-gray-500 text-sm hover:text-white mt-4"
+              className="text-slate-500 text-sm hover:text-white transition-colors mt-4"
             >
               Continue anyway (may not work)
             </button>
@@ -161,41 +186,53 @@ export default function Landing() {
   }
 
   return (
-    <div className="min-h-screen bg-[#050505] relative overflow-hidden">
-      {/* Background effect */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#00FF94]/5 to-transparent pointer-events-none" />
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Animated gradient orbs */}
+      <div className="orb w-[500px] h-[500px] bg-emerald-500/20 top-[-10%] left-[-5%]" />
+      <div className="orb orb-slow w-[400px] h-[400px] bg-cyan-500/15 top-[20%] right-[-5%]" style={{ animationDelay: '-5s' }} />
+      <div className="orb w-[300px] h-[300px] bg-indigo-500/10 bottom-[10%] left-[30%]" style={{ animationDelay: '-10s' }} />
       
-      {/* Hero Section */}
+      {/* Grid pattern overlay */}
+      <div className="absolute inset-0 bg-grid-pattern pointer-events-none" />
+      
+      {/* Gradient fade at top */}
+      <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/[0.03] via-transparent to-indigo-500/[0.02] pointer-events-none" />
+      
       <div className="relative z-10">
+        {/* Nav */}
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-[#00FF94] pulse-indicator" />
-              <span className="font-display text-xl font-bold tracking-tight">CEnT-S ALERT</span>
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <div className="w-3 h-3 bg-emerald-400 rounded-full pulse-indicator" />
+                <div className="absolute inset-0 w-3 h-3 bg-emerald-400 rounded-full animate-ping opacity-20" />
+              </div>
+              <span className="font-display text-xl font-bold tracking-tight gradient-text-warm">CEnT-S ALERT</span>
             </div>
           </div>
         </nav>
 
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
           {/* Hero */}
           <div className="text-left max-w-4xl animate-fadeIn">
-            <div className="inline-flex items-center gap-2 bg-[#0A0A0A] border border-[#27272A] px-4 py-2 mb-8">
-              <div className="w-2 h-2 bg-[#00FF94] rounded-full pulse-indicator" />
-              <span className="font-display text-sm text-gray-400 uppercase tracking-widest">
+            <div className="inline-flex items-center gap-2 glass rounded-full px-5 py-2.5 mb-8">
+              <div className="w-2 h-2 bg-emerald-400 rounded-full pulse-indicator" />
+              <span className="font-display text-sm text-slate-400 uppercase tracking-widest">
                 MONITORING ACTIVE
               </span>
+              <Sparkles className="w-3.5 h-3.5 text-emerald-400/60 ml-1" />
             </div>
 
-            <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tighter mb-6">
+            <h1 className="font-display text-4xl sm:text-5xl lg:text-7xl font-extrabold tracking-tighter mb-6 leading-[0.95]">
               NEVER MISS A{" "}
-              <span className="text-[#00FF94] neon-text">CENT@CASA</span>
+              <span className="gradient-text">CENT@CASA</span>
               <br />
               SPOT AGAIN
             </h1>
 
-            <p className="text-lg text-gray-400 max-w-2xl mb-12 leading-relaxed">
+            <p className="text-lg sm:text-xl text-slate-400 max-w-2xl mb-12 leading-relaxed">
               Get instant alerts when a CEnT-S entrance test spot opens. We monitor the CISIA 
-              calendar 24/7 and notify you via Telegram the moment a 
+              calendar <span className="text-emerald-400 font-medium">24/7</span> and notify you via Telegram the moment a 
               CENT@CASA position becomes available.
             </p>
 
@@ -203,7 +240,7 @@ export default function Landing() {
               <Button
                 data-testid="google-login-btn"
                 onClick={handleGoogleLogin}
-                className="bg-[#00FF94] text-black hover:bg-[#00CC76] font-bold rounded-none uppercase tracking-wider px-8 py-6 text-base transition-colors hover:shadow-[0_0_20px_rgba(0,255,148,0.4)]"
+                className="group bg-gradient-to-r from-emerald-400 to-cyan-400 text-slate-900 hover:from-emerald-300 hover:to-cyan-300 font-bold rounded-xl uppercase tracking-wider px-8 py-6 text-base transition-all duration-300 hover:shadow-[0_0_40px_rgba(52,211,153,0.3)] hover:-translate-y-0.5"
               >
                 <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                   <path
@@ -224,75 +261,67 @@ export default function Landing() {
                   />
                 </svg>
                 Continue with Google
+                <ArrowRight className="w-4 h-4 ml-1 transition-transform group-hover:translate-x-1" />
               </Button>
 
               <a
                 href="https://testcisia.it/calendario.php?tolc=cents&lingua=inglese"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center bg-transparent border border-[#27272A] text-white hover:border-white hover:bg-white/5 font-medium rounded-none uppercase tracking-wider px-8 py-6 text-base transition-colors"
+                className="group inline-flex items-center justify-center glass rounded-xl font-medium uppercase tracking-wider px-8 py-6 text-base transition-all duration-300 hover:border-emerald-500/30 hover:bg-emerald-500/5 text-slate-300 hover:text-white"
               >
                 View CISIA Calendar
+                <ExternalLink className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </a>
             </div>
           </div>
 
           {/* Features Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-24 animate-slideUp delay-200">
-            <div className="bg-[#0A0A0A] border border-[#27272A] p-8 card-hover">
-              <Bell className="w-8 h-8 text-[#00FF94] mb-4" />
-              <h3 className="font-display text-lg font-semibold mb-2">TELEGRAM ALERTS</h3>
-              <p className="text-gray-400 text-sm">
-                Free instant Telegram notifications the second a spot opens.
-              </p>
-            </div>
-
-            <div className="bg-[#0A0A0A] border border-[#27272A] p-8 card-hover">
-              <Clock className="w-8 h-8 text-[#00FF94] mb-4" />
-              <h3 className="font-display text-lg font-semibold mb-2">24/7 MONITORING</h3>
-              <p className="text-gray-400 text-sm">
-                We check for new spots every 30 seconds, around the clock.
-              </p>
-            </div>
-
-            <div className="bg-[#0A0A0A] border border-[#27272A] p-8 card-hover">
-              <Zap className="w-8 h-8 text-[#00FF94] mb-4" />
-              <h3 className="font-display text-lg font-semibold mb-2">CENT@CASA ONLY</h3>
-              <p className="text-gray-400 text-sm">
-                Focused on home-based tests. No noise from CENT@UNI.
-              </p>
-            </div>
-
-            <div className="bg-[#0A0A0A] border border-[#27272A] p-8 card-hover">
-              <Shield className="w-8 h-8 text-[#00FF94] mb-4" />
-              <h3 className="font-display text-lg font-semibold mb-2">GLOBAL SUPPORT</h3>
-              <p className="text-gray-400 text-sm">
-                International phone numbers supported for all countries.
-              </p>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mt-24">
+            {featureCards.map((card, idx) => {
+              const Icon = card.icon;
+              return (
+                <div
+                  key={card.title}
+                  className={`group glass-card rounded-xl p-7 animate-slideUp opacity-0 ${card.borderHover}`}
+                  style={{ animationDelay: `${200 + idx * 100}ms`, animationFillMode: 'forwards' }}
+                >
+                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${card.gradient} flex items-center justify-center mb-5 transition-transform duration-300 group-hover:scale-110`}>
+                    <Icon className={`w-6 h-6 ${card.iconColor}`} />
+                  </div>
+                  <h3 className="font-display text-base font-semibold mb-2 text-white">{card.title}</h3>
+                  <p className="text-slate-400 text-sm leading-relaxed">
+                    {card.description}
+                  </p>
+                </div>
+              );
+            })}
           </div>
 
           {/* Status Section */}
-          <div className="mt-24 animate-slideUp delay-400">
-            <div className="bg-[#0A0A0A] border border-[#27272A] p-8">
+          <div className="mt-24 animate-slideUp opacity-0" style={{ animationDelay: '600ms', animationFillMode: 'forwards' }}>
+            <div className="gradient-border rounded-xl p-8">
               <div className="flex items-center gap-4 mb-6">
-                <div className="w-4 h-4 bg-[#00FF94] rounded-full pulse-indicator shadow-[0_0_10px_#00FF94]" />
-                <span className="font-display text-sm uppercase tracking-widest text-gray-400">
+                <div className="relative">
+                  <div className="w-4 h-4 bg-emerald-400 rounded-full pulse-indicator" />
+                  <div className="absolute inset-0 w-4 h-4 bg-emerald-400 rounded-full animate-ping opacity-20" />
+                </div>
+                <span className="font-display text-sm uppercase tracking-widest text-slate-400">
                   SYSTEM STATUS
                 </span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div>
-                  <p className="text-gray-500 text-sm uppercase tracking-wider mb-1">Monitoring</p>
-                  <p className="font-display text-2xl font-bold text-[#00FF94]">ACTIVE</p>
+                  <p className="text-slate-500 text-sm uppercase tracking-wider mb-1">Monitoring</p>
+                  <p className="font-display text-2xl font-bold gradient-text-warm">ACTIVE</p>
                 </div>
                 <div>
-                  <p className="text-gray-500 text-sm uppercase tracking-wider mb-1">Check Interval</p>
-                  <p className="font-display text-2xl font-bold">30 SEC</p>
+                  <p className="text-slate-500 text-sm uppercase tracking-wider mb-1">Check Interval</p>
+                  <p className="font-display text-2xl font-bold text-white">30 SEC</p>
                 </div>
                 <div>
-                  <p className="text-gray-500 text-sm uppercase tracking-wider mb-1">Target</p>
-                  <p className="font-display text-2xl font-bold">CENT@CASA</p>
+                  <p className="text-slate-500 text-sm uppercase tracking-wider mb-1">Target</p>
+                  <p className="font-display text-2xl font-bold text-white">CENT@CASA</p>
                 </div>
               </div>
             </div>
@@ -300,19 +329,19 @@ export default function Landing() {
         </main>
 
         {/* Footer */}
-        <footer className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 border-t border-[#27272A]">
+        <footer className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 border-t border-slate-800/50">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-[#00FF94]" />
-              <span className="font-display text-sm text-gray-500">CEnT-S ALERT</span>
+              <div className="w-2 h-2 bg-emerald-400 rounded-full" />
+              <span className="font-display text-sm text-slate-500">CEnT-S ALERT</span>
             </div>
-            <p className="text-gray-500 text-sm">
+            <p className="text-slate-500 text-sm">
               Monitoring{" "}
               <a 
                 href="https://testcisia.it" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-[#00FF94] hover:underline"
+                className="text-emerald-400 hover:text-emerald-300 transition-colors hover:underline"
               >
                 testcisia.it
               </a>

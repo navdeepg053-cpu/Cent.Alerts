@@ -1,69 +1,65 @@
 /* CEnT-S Alert - App Styles */
 
-/* Spinner animation */
 .spinner {
     animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
-/* Pulse indicator */
 .pulse-indicator {
     animation: pulse-glow 2s ease-in-out infinite;
 }
 
 @keyframes pulse-glow {
     0%, 100% {
-        box-shadow: 0 0 5px currentColor, 0 0 10px currentColor;
+        box-shadow: 0 0 6px currentColor, 0 0 12px currentColor;
         opacity: 1;
     }
     50% {
-        box-shadow: 0 0 10px currentColor, 0 0 20px currentColor;
-        opacity: 0.8;
+        box-shadow: 0 0 12px currentColor, 0 0 24px currentColor;
+        opacity: 0.7;
     }
 }
 
-/* Neon glow */
 .neon-glow {
-    box-shadow: 0 0 20px rgba(0, 255, 148, 0.3);
+    box-shadow:
+        0 0 15px rgba(52, 211, 153, 0.15),
+        0 0 40px rgba(52, 211, 153, 0.08);
 }
 
 .neon-text {
-    text-shadow: 0 0 10px rgba(0, 255, 148, 0.5);
+    text-shadow: 0 0 20px rgba(52, 211, 153, 0.4), 0 0 40px rgba(34, 211, 238, 0.2);
 }
 
-/* Card hover */
 .card-hover {
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .card-hover:hover {
-    border-color: rgba(0, 255, 148, 0.5);
+    border-color: rgba(52, 211, 153, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 40px rgba(52, 211, 153, 0.06);
+    transform: translateY(-2px);
 }
 
-/* Status badges */
 .status-available {
-    background-color: rgba(0, 255, 148, 0.1);
-    color: #00FF94;
-    border: 1px solid rgba(0, 255, 148, 0.3);
+    background: linear-gradient(135deg, rgba(52, 211, 153, 0.1), rgba(34, 211, 238, 0.05));
+    color: #34D399;
+    border: 1px solid rgba(52, 211, 153, 0.2);
+    border-radius: 9999px;
 }
 
 .status-full {
-    background-color: rgba(255, 59, 48, 0.1);
-    color: #FF3B30;
-    border: 1px solid rgba(255, 59, 48, 0.3);
+    background: rgba(248, 113, 113, 0.1);
+    color: #F87171;
+    border: 1px solid rgba(248, 113, 113, 0.2);
+    border-radius: 9999px;
 }
 
-/* Entrance animations */
 .animate-fadeIn {
-    animation: fadeIn 0.3s ease-out forwards;
+    animation: fadeIn 0.5s ease-out forwards;
 }
 
 @keyframes fadeIn {
@@ -78,13 +74,13 @@
 }
 
 .animate-slideUp {
-    animation: slideUp 0.4s ease-out forwards;
+    animation: slideUp 0.6s ease-out forwards;
 }
 
 @keyframes slideUp {
     from {
         opacity: 0;
-        transform: translateY(20px);
+        transform: translateY(30px);
     }
     to {
         opacity: 1;
@@ -92,55 +88,54 @@
     }
 }
 
-/* Animation delays */
 .delay-100 { animation-delay: 100ms; }
 .delay-200 { animation-delay: 200ms; }
 .delay-300 { animation-delay: 300ms; }
 .delay-400 { animation-delay: 400ms; }
 .delay-500 { animation-delay: 500ms; }
 
-/* Table styles */
 .table-dark {
-    background-color: #0A0A0A;
-    border: 1px solid #27272A;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.5) 0%, rgba(15, 23, 42, 0.3) 100%);
+    border: 1px solid rgba(148, 163, 184, 0.08);
+    border-radius: var(--radius, 12px);
+    overflow: hidden;
 }
 
 .table-dark th {
-    background-color: #050505;
-    border-bottom: 1px solid #27272A;
+    background: rgba(15, 23, 42, 0.6);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.08);
 }
 
 .table-dark td {
-    border-bottom: 1px solid #1A1A1A;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.05);
 }
 
-/* Phone input custom styles */
 .PhoneInput {
-    background-color: #050505 !important;
-    border: 1px solid #27272A !important;
-    border-radius: 0 !important;
+    background: rgba(15, 23, 42, 0.5) !important;
+    border: 1px solid rgba(148, 163, 184, 0.1) !important;
+    border-radius: var(--radius, 12px) !important;
     padding: 0.75rem !important;
 }
 
 .PhoneInput:focus-within {
-    border-color: #00FF94 !important;
-    box-shadow: 0 0 0 1px #00FF94 !important;
+    border-color: rgba(52, 211, 153, 0.5) !important;
+    box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.1) !important;
 }
 
 .PhoneInputInput {
     background-color: transparent !important;
-    color: #ffffff !important;
+    color: hsl(210, 40%, 98%) !important;
     border: none !important;
     outline: none !important;
     font-family: 'JetBrains Mono', monospace !important;
 }
 
 .PhoneInputCountrySelect {
-    background-color: #0A0A0A !important;
-    color: #ffffff !important;
+    background-color: hsl(220, 20%, 7%) !important;
+    color: hsl(210, 40%, 98%) !important;
     border: none !important;
 }
 
 .PhoneInputCountrySelectArrow {
-    border-color: #ffffff !important;
+    border-color: hsl(210, 40%, 98%) !important;
 }
