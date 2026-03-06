@@ -211,10 +211,10 @@ export default function TelegramSetup({ user, setUser }) {
           </div>
         </div>
 
-        {/* User info */}
+        {/* No account needed */}
         <div className="mt-4 text-center">
           <p className="text-slate-500 text-sm">
-            Signed in as <span className="text-white">{user?.email}</span>
+            No account required — just connect Telegram
           </p>
         </div>
       </div>

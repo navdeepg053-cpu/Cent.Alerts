@@ -503,76 +503,56 @@ async def get_user(request: Request):
     return await db.users.find_one({"user_id": session['user_id']}, {"_id": 0})
 
 
-@api.post("/auth/session")
-async def auth_session(request: Request, response: Response):
-    body = await request.json()
-    sid = body.get('session_id')
-    if not sid:
-        raise HTTPException(400, "session_id required")
+async def get_or_create_user(request: Request, response: Response):
+    """Get existing user from cookie, or create anonymous one."""
+    user = await get_user(request)
+    if user:
+        return user, False
     
-    try:
-        async with httpx.AsyncClient() as http:
-            r = await http.get(
-                "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data",
-                headers={"X-Session-ID": sid}
-            )
-            auth = r.json()
-    except:
-        raise HTTPException(401, "Invalid session")
+    uid = f"anon_{uuid.uuid4().hex[:12]}"
+    token = f"sess_{uuid.uuid4().hex}"
     
-    email = auth.get('email')
-    name = auth.get('name')
-    picture = auth.get('picture')
-    token = auth.get('session_token')
-    
-    existing = await db.users.find_one({"email": email}, {"_id": 0})
-    
-    if existing:
-        uid = existing['user_id']
-        await db.users.update_one({"email": email}, {"$set": {"name": name, "picture": picture}})
-    else:
-        uid = f"user_{uuid.uuid4().hex[:12]}"
-        await db.users.insert_one({
-            "user_id": uid, "email": email, "name": name, "picture": picture,
-            "telegram_chat_id": None, "alert_telegram": False,
-            "created_at": datetime.now(timezone.utc).isoformat()
-        })
+    await db.users.insert_one({
+        "user_id": uid, "email": None, "name": "Guest",
+        "picture": None, "telegram_chat_id": None,
+        "alert_telegram": False,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    })
     
     await db.user_sessions.insert_one({
         "session_token": token, "user_id": uid,
-        "expires_at": (datetime.now(timezone.utc) + timedelta(days=7)).isoformat(),
+        "expires_at": (datetime.now(timezone.utc) + timedelta(days=90)).isoformat(),
         "created_at": datetime.now(timezone.utc).isoformat()
     })
     
     user = await db.users.find_one({"user_id": uid}, {"_id": 0})
-    response.set_cookie("session_token", token, httponly=True, secure=True, samesite="none", path="/", max_age=604800)
-    
-    return {"user": user, "needs_telegram": not user.get('telegram_chat_id')}
+    response.set_cookie(
+        "session_token", token,
+        httponly=True, secure=True, samesite="none",
+        path="/", max_age=7776000
+    )
+    return user, True
+
+
+@api.post("/auth/start")
+async def auth_start(request: Request, response: Response):
+    """Create or retrieve an anonymous session. No login required."""
+    user, created = await get_or_create_user(request, response)
+    return {"user": user, "needs_telegram": not user.get('telegram_chat_id'), "created": created}
 
 
 @api.get("/auth/me")
-async def auth_me(request: Request):
+async def auth_me(request: Request, response: Response):
     user = await get_user(request)
     if not user:
-        raise HTTPException(401, "Not authenticated")
+        user, _ = await get_or_create_user(request, response)
     return user
-
-
-@api.post("/auth/logout")
-async def auth_logout(request: Request, response: Response):
-    token = request.cookies.get('session_token')
-    if token:
-        await db.user_sessions.delete_one({"session_token": token})
-    response.delete_cookie("session_token", path="/", secure=True, samesite="none")
-    return {"status": "ok"}
 
 
 # ========== USER ==========
 @api.post("/users/telegram")
-async def connect_telegram(request: Request, data: TelegramConnectRequest):
-    user = await get_user(request)
-    if not user:
-        raise HTTPException(401)
+async def connect_telegram(request: Request, response: Response, data: TelegramConnectRequest):
+    user, _ = await get_or_create_user(request, response)
     
     await db.users.update_one(
         {"user_id": user['user_id']},
@@ -583,10 +563,8 @@ async def connect_telegram(request: Request, data: TelegramConnectRequest):
 
 
 @api.put("/users/alerts")
-async def update_alerts(request: Request, settings: AlertSettingsRequest):
-    user = await get_user(request)
-    if not user:
-        raise HTTPException(401)
+async def update_alerts(request: Request, response: Response, settings: AlertSettingsRequest):
+    user, _ = await get_or_create_user(request, response)
     
     await db.users.update_one({"user_id": user['user_id']}, {"$set": {"alert_telegram": settings.alert_telegram}})
     return await db.users.find_one({"user_id": user['user_id']}, {"_id": 0})
@@ -629,20 +607,15 @@ async def availability_history(limit: int = 50):
 
 
 @api.post("/availability/refresh")
-async def refresh(background_tasks: BackgroundTasks, request: Request):
-    user = await get_user(request)
-    if not user:
-        raise HTTPException(401)
+async def refresh(background_tasks: BackgroundTasks):
     background_tasks.add_task(check_spots)
     return {"status": "started"}
 
 
 # ========== NOTIFICATIONS ==========
 @api.get("/notifications/history")
-async def notif_history(request: Request, limit: int = 50):
-    user = await get_user(request)
-    if not user:
-        raise HTTPException(401)
+async def notif_history(request: Request, response: Response, limit: int = 50):
+    user, _ = await get_or_create_user(request, response)
     return await db.notifications.find({"user_id": user['user_id']}, {"_id": 0}).sort("sent_at", -1).limit(limit).to_list(limit)
 
 
