@@ -361,9 +361,30 @@ async def scrape_cisia() -> List[AvailabilitySpot]:
     return spots
 
 
+async def cleanup_old_data():
+    """Delete old snapshots and sessions to stay under 512MB."""
+    try:
+        # Keep only last 24 hours of snapshots
+        cutoff = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
+        result = await db.availability_snapshots.delete_many({"timestamp": {"$lt": cutoff}})
+        if result.deleted_count > 0:
+            logger.info(f"🧹 Cleaned {result.deleted_count} old snapshots")
+        
+        # Delete expired sessions
+        now = datetime.now(timezone.utc).isoformat()
+        result = await db.user_sessions.delete_many({"expires_at": {"$lt": now}})
+        if result.deleted_count > 0:
+            logger.info(f"🧹 Cleaned {result.deleted_count} expired sessions")
+            
+    except Exception as e:
+        logger.error(f"Cleanup error: {e}")
+
+
 async def check_spots():
     """Check for new spots and notify users."""
     logger.info("🔍 Checking CISIA...")
+    
+    await cleanup_old_data()
     
     spots = await scrape_cisia()
     available = [s for s in spots if "DISPONIBILI" in s.status.upper()]
